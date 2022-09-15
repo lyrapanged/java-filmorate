@@ -1,25 +1,24 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.NonNull;
+import lombok.*;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 @Data
+@Setter(AccessLevel.PUBLIC)
+@ToString(includeFieldNames = true, onlyExplicitlyIncluded = true)
 @Builder
 public class Film {
+    @ToString.Include
     private Integer id;
     @NotBlank
     private String name;
     @NotBlank
     @Size(max = 200)
+    @Setter(AccessLevel.PACKAGE)
     private String description;
-    @NonNull
+    @NotNull
     private LocalDate releaseDate;
     @Positive
     @Max(5000)

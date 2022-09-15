@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.controllers;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -15,11 +17,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/films")
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public class FilmController {
-    private final static int DESCRIPTION_LENGTH = 200;
     private final static LocalDate LOWER_DATE = LocalDate.of(1895, 12, 28);
     private final Map<Integer, Film> films = new HashMap<>();
     private Integer idFilm = 0;
+
 
     @PostMapping()
     public Film addFilm(@Valid @RequestBody Film film) {
@@ -48,22 +52,10 @@ public class FilmController {
         return new ArrayList<>(films.values());
     }
 
-    private void validationFilm(@Valid @RequestBody Film film) {
-        if (film.getName().isBlank()) {
-            log.error("Bad name.");
-            throw new ValidationException("Name cannot be empty.");
-        }
-        if (film.getDescription().length() > DESCRIPTION_LENGTH) {
-            log.error("Bad description.");
-            throw new ValidationException("Max description length is 200 symbols.");
-        }
+    private void validationFilm(Film film) {
         if (film.getReleaseDate().isBefore(LOWER_DATE)) {
             log.error("Bad release date");
             throw new ValidationException("Release date - no earlier than December 28, 1895.");
-        }
-        if (film.getDuration() <= 0) {
-            log.error("Bad duration.");
-            throw new ValidationException("Film duration must be positive!");
         }
         log.info("Validation passed successfully.");
     }
