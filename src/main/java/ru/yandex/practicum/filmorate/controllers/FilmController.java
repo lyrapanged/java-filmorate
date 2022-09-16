@@ -6,22 +6,25 @@ import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-    private final Map<Integer,Film> films = new HashMap<>();
-    private Integer idFilm = 0;
     private final static int DESCRIPTION_LENGTH = 200;
     private final static LocalDate LOWER_DATE = LocalDate.of(1895, 12, 28);
+    private final Map<Integer, Film> films = new HashMap<>();
+    private Integer idFilm = 0;
 
     @PostMapping()
     public Film addFilm(@RequestBody Film film) {
         validationFilm(film);
         film.setId(++idFilm);
-        films.put(film.getId(),film);
+        films.put(film.getId(), film);
         log.info("Film added.");
         return film;
     }
@@ -33,7 +36,7 @@ public class FilmController {
             log.error("Bad id");
             throw new ValidationException("ID doesn't exist");
         }
-        films.put(film.getId(),film);
+        films.put(film.getId(), film);
         log.info("Film updated.");
         return film;
     }
@@ -57,7 +60,7 @@ public class FilmController {
             log.error("Bad release date");
             throw new ValidationException("Release date - no earlier than December 28, 1895.");
         }
-        if (film.getDuration() <= 0){
+        if (film.getDuration() <= 0) {
             log.error("Bad duration.");
             throw new ValidationException("Film duration must be positive.");
         }

@@ -44,14 +44,14 @@ class FilmControllerTest {
 
     @Test
     void validationTestReleaseDate() {
-        film.setReleaseDate(LocalDate.of(1895,12,27));
+        film.setReleaseDate(LocalDate.of(1895, 12, 27));
         assertThrows(ValidationException.class, () -> filmController.addFilm(film), "Bad release day.");
     }
 
     @Test
-    void validationTestDuration(){
+    void validationTestDuration() {
         film.setDuration(-1);
-        assertThrows(ValidationException.class,() -> filmController.addFilm(film), "Bad duration.");
+        assertThrows(ValidationException.class, () -> filmController.addFilm(film), "Bad duration.");
     }
 
 }
