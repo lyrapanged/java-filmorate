@@ -62,7 +62,7 @@ public class FilmController {
         }
         if (film.getDuration() <= 0) {
             log.error("Bad duration.");
-            throw new ValidationException("Film duration must be positive.");
+            throw new ValidationException("Film duration must be positive!");
         }
         log.info("Validation passed successfully.");
     }
