@@ -25,7 +25,7 @@ public class FilmController {
         validationFilm(film);
         film.setId(++idFilm);
         films.put(film.getId(), film);
-        log.info("Film added.");
+        log.info("Film added!");
         return film;
     }
 
