@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +21,7 @@ public class UserController {
     private Integer IdUser = 0;
 
     @PostMapping
-    public User addUser(@RequestBody User user) {
+    public User addUser(@Valid @RequestBody User user) {
         validationUser(user);
         user.setId(++IdUser);
         users.put(user.getId(), user);
@@ -29,7 +30,7 @@ public class UserController {
     }
 
     @PutMapping
-    public User updateUser(@RequestBody User user) {
+    public User updateUser(@Valid @RequestBody User user) {
         validationUser(user);
         if (users.get(user.getId()) == null) {
             log.error("Bad id");
@@ -47,15 +48,15 @@ public class UserController {
     }
 
     private void validationUser(User user) {
-        if (!(user.getEmail().contains("@")) || user.getEmail().isBlank()) {
+        if (!(user.getEmail().contains("@"))) {
             log.error("Bad email");
             throw new ValidationException("Email cannot be empty and contain the symbol \"@\".");
         }
-        if (user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
+        if (user.getLogin().contains(" ")) {
             log.error("Bad login");
             throw new ValidationException("Login cannot be empty and contain spaces.");
         }
-        if (user.getName() == null) {
+        if (user.getName() == null || user.getName().isBlank()) {
             log.info("Name has been set to Login");
             user.setName(user.getLogin());
         }
