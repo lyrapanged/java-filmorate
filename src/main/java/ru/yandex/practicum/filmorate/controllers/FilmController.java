@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,13 +16,12 @@ import java.util.Map;
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-    private final static int DESCRIPTION_LENGTH = 200;
     private final static LocalDate LOWER_DATE = LocalDate.of(1895, 12, 28);
     private final Map<Integer, Film> films = new HashMap<>();
     private Integer idFilm = 0;
 
     @PostMapping()
-    public Film addFilm(@RequestBody Film film) {
+    public Film addFilm(@Valid @RequestBody Film film) {
         validationFilm(film);
         film.setId(++idFilm);
         films.put(film.getId(), film);
@@ -30,7 +30,7 @@ public class FilmController {
     }
 
     @PutMapping()
-    public Film updateFilm(@RequestBody Film film) {
+    public Film updateFilm(@Valid @RequestBody Film film) {
         validationFilm(film);
         if (films.get(film.getId()) == null) {
             log.error("Bad id");
@@ -47,14 +47,10 @@ public class FilmController {
         return new ArrayList<>(films.values());
     }
 
-    private void validationFilm(Film film) {
+    private void validationFilm(@Valid @RequestBody Film film) {
         if (film.getName().isBlank()) {
             log.error("Bad name.");
             throw new ValidationException("Name cannot be empty.");
-        }
-        if (film.getDescription().length() > DESCRIPTION_LENGTH) {
-            log.error("Bad description.");
-            throw new ValidationException("Max description length is 200 symbols.");
         }
         if (film.getReleaseDate().isBefore(LOWER_DATE)) {
             log.error("Bad release date");

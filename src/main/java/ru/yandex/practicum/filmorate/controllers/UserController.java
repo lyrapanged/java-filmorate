@@ -47,7 +47,7 @@ public class UserController {
         return new ArrayList<>(users.values());
     }
 
-    private void validationUser(User user) {
+    private void validationUser(@Valid User user) {
         if (!(user.getEmail().contains("@"))) {
             log.error("Bad email");
             throw new ValidationException("Email cannot be empty and contain the symbol \"@\".");
