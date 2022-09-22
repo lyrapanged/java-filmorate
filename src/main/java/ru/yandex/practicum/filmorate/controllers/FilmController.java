@@ -16,6 +16,7 @@ import java.util.Map;
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
+    private final static int DESCRIPTION_LENGTH = 200;
     private final static LocalDate LOWER_DATE = LocalDate.of(1895, 12, 28);
     private final Map<Integer, Film> films = new HashMap<>();
     private Integer idFilm = 0;
@@ -51,6 +52,10 @@ public class FilmController {
         if (film.getName().isBlank()) {
             log.error("Bad name.");
             throw new ValidationException("Name cannot be empty.");
+        }
+        if (film.getDescription().length() > DESCRIPTION_LENGTH) {
+            log.error("Bad description.");
+            throw new ValidationException("Max description length is 200 symbols.");
         }
         if (film.getReleaseDate().isBefore(LOWER_DATE)) {
             log.error("Bad release date");
