@@ -1,8 +1,6 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -17,8 +15,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/films")
 @Slf4j
-@Component
-@RequiredArgsConstructor
 public class FilmController {
     private final static LocalDate LOWER_DATE = LocalDate.of(1895, 12, 28);
     private final Map<Integer, Film> films = new HashMap<>();
