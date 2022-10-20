@@ -4,11 +4,13 @@ import lombok.*;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
-@Setter(AccessLevel.PUBLIC)
-@ToString(includeFieldNames = true, onlyExplicitlyIncluded = true)
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Film {
     @ToString.Include
     private Integer id;
@@ -23,4 +25,16 @@ public class Film {
     @Positive
     @Max(5000)
     private int duration;
+    private Set<Integer> filmLikes = new HashSet<>();
+    private int likesCounter;
+
+    public void setFilmLikes(Integer idUser) {
+        filmLikes.add(idUser);
+    }
+
+    public void removeLike(Integer idUser) {
+        filmLikes.remove(idUser);
+    }
+
+
 }

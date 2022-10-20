@@ -1,60 +1,65 @@
 package ru.yandex.practicum.filmorate.controllers;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.user.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
+@RequiredArgsConstructor
 public class UserController {
 
-    private final Map<Integer, User> users = new HashMap<>();
-    private Integer IdUser = 0;
+    private final InMemoryUserStorage inMemoryUserStorage;
+    private final UserService userService;
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
-        validationUser(user);
-        user.setId(++IdUser);
-        users.put(user.getId(), user);
-        log.info("User added.");
+        inMemoryUserStorage.addUser(user);
         return user;
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-        validationUser(user);
-        if (users.get(user.getId()) == null) {
-            log.error("Bad id");
-            throw new ValidationException("ID doesn't exist");
-        }
-        users.put(user.getId(), user);
-        log.info("User updated.");
+        inMemoryUserStorage.updateUser(user);
         return user;
     }
 
     @GetMapping
     public List<User> getAllUsers() {
-        log.info("Request getAllUser.");
-        return new ArrayList<>(users.values());
+        return inMemoryUserStorage.getAllUsers();
     }
 
-    private void validationUser(User user) {
-        if (user.getLogin().contains(" ")) {
-            log.error("Bad login");
-            throw new ValidationException("Login cannot be empty and contain spaces.");
-        }
-        if (user.getName() == null || user.getName().isBlank()) {
-            log.info("Name has been set to Login");
-            user.setName(user.getLogin());
-        }
-        log.info("Validation passed successfully");
+    @GetMapping(value = "{id}")
+    public User getUser(@PathVariable Integer id) {
+        return inMemoryUserStorage.getUser(id);
+    }
+
+    @PutMapping(value = "{id}/friends/{friendId}")
+    public void addFriends(@PathVariable Integer id, @PathVariable Integer friendId) {
+        userService.addFriend(inMemoryUserStorage.getUser(id), inMemoryUserStorage.getUser(friendId));
+
+    }
+
+    @DeleteMapping(value = "{id}/friends/{friendId}")
+    public void removeFriend(@PathVariable Integer id, @PathVariable Integer friendId) {
+        userService.removeFriend(inMemoryUserStorage.getUser(id), inMemoryUserStorage.getUser(friendId));
+    }
+
+    @GetMapping(value = "{id}/friends")
+    public List<User> getFriends(@PathVariable Integer id) {
+        return userService.getFriends(id, inMemoryUserStorage);
+    }
+
+    @GetMapping(value = "{id}/friends/common/{otherId}")//
+    public List<User> getCommonFriends(@PathVariable Integer id, @PathVariable Integer otherId) {
+        return userService.commonFriends(
+                inMemoryUserStorage.getUser(id),inMemoryUserStorage.getUser(otherId), inMemoryUserStorage);
     }
 }
