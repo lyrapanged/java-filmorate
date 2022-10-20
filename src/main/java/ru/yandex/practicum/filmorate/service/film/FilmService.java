@@ -1,11 +1,12 @@
 package ru.yandex.practicum.filmorate.service.film;
 
-import lombok.NonNull;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Comparator;
 import java.util.Set;
@@ -13,22 +14,28 @@ import java.util.stream.Collectors;
 
 
 @Service
+@RequiredArgsConstructor
+@Data
 public class FilmService {
 
-    public void addLike(@NonNull User user, @NonNull Film film) {
+    private final FilmStorage inMemoryFilmStorage;
+    private final UserStorage inMemoryUserStorage;
+
+    public void addLike(Integer idFilm, Integer idUser) {
+        Film film = inMemoryFilmStorage.getFilm(idFilm);
+        User user = inMemoryUserStorage.getUser(idUser);
         film.setFilmLikes(user.getId());
         film.setLikesCounter(film.getFilmLikes().size());
     }
 
-    public void removeLike(@NonNull User user, @NonNull Film film) {
+    public void removeLike(Integer idFilm, Integer idUser) {
+        Film film = inMemoryFilmStorage.getFilm(idFilm);
+        User user = inMemoryUserStorage.getUser(idUser);
         film.removeLike(user.getId());
         film.setLikesCounter(film.getFilmLikes().size());
     }
 
-    public Set<Film> topFilms(InMemoryFilmStorage inMemoryFilmStorage, Integer count) {
-        if (count <= 0) {
-            throw new IncorrectParameterException("Count must be grater then zero.");
-        }
+    public Set<Film> topFilms(Integer count) {
         return inMemoryFilmStorage.getFilms().stream()
                 .sorted(Comparator.comparing(Film::getLikesCounter)
                         .reversed())

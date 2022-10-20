@@ -1,68 +1,76 @@
 package ru.yandex.practicum.filmorate.controllers;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exceptions.ReleaseDataException;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
-import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
 @RestController
 @RequestMapping("/films")
 @Slf4j
+@Validated
+@RequiredArgsConstructor
 public class FilmController {
 
-    private final InMemoryFilmStorage inMemoryFilmStorage;
-    private final FilmService filmService;
-    private final InMemoryUserStorage inMemoryUserStorage;
+    private final static LocalDate LOWER_DATE = LocalDate.of(1895, 12, 28);
 
-    @Autowired
-    public FilmController(InMemoryFilmStorage inMemoryFilmStorage, FilmService filmService, InMemoryUserStorage inMemoryUserStorage) {
-        this.inMemoryFilmStorage = inMemoryFilmStorage;
-        this.filmService = filmService;
-        this.inMemoryUserStorage = inMemoryUserStorage;
-    }
+    private final FilmService filmService;
 
     @PostMapping()
     public Film addFilm(@Valid @RequestBody Film film) {
-        inMemoryFilmStorage.addFilm(film);
+        validationFilm(film);
+        filmService.getInMemoryFilmStorage().addFilm(film);
         return film;
     }
 
     @PutMapping()
     public Film updateFilm(@Valid @RequestBody Film film) {
-        inMemoryFilmStorage.updateFilm(film);
+        validationFilm(film);
+        filmService.getInMemoryFilmStorage().updateFilm(film);
         return film;
     }
 
     @GetMapping(value = "{id}")
     public Film getFilm(@Valid @PathVariable Integer id) {
-        return inMemoryFilmStorage.getFilm(id);
+        return filmService.getInMemoryFilmStorage().getFilm(id);
     }
 
     @GetMapping()
     public List<Film> getFilms() {
-        return inMemoryFilmStorage.getFilms();
+        return filmService.getInMemoryFilmStorage().getFilms();
     }
 
     @PutMapping(value = "{id}/like/{userId}")
-    public void addLike(@PathVariable Integer id, @PathVariable Integer userId) {
-        filmService.addLike(inMemoryUserStorage.getUser(userId), inMemoryFilmStorage.getFilm(id));
+    public void addLike(@PathVariable(value = "id") Integer filmId, @PathVariable Integer userId) {
+        filmService.addLike(filmId, userId);
     }
 
     @DeleteMapping(value = "{id}/like/{userId}")
-    public void removeLike(@PathVariable Integer id, @PathVariable Integer userId) {
-        filmService.removeLike(inMemoryUserStorage.getUser(userId), inMemoryFilmStorage.getFilm(id));
+    public void removeLike(@PathVariable(value = "id") Integer filmId, @PathVariable Integer userId) {
+        filmService.removeLike(filmId, userId);
     }
 
     @GetMapping(value = "/popular")
-    public Set<Film> getMostPopularMovies(@RequestParam(defaultValue = "10", required = false) Integer count) {
-        return filmService.topFilms(inMemoryFilmStorage, count);
+    public Set<Film> getMostPopularMovies(@RequestParam(defaultValue = "10", required = false) @Positive Integer count) {
+        return filmService.topFilms(count);
+    }
+
+    private void validationFilm(Film film) {
+        if (film.getReleaseDate().isBefore(LOWER_DATE)) {
+            log.error("Bad release date");
+            throw new ReleaseDataException("Release date - no earlier than December 28, 1895.");
+        }
+        log.info("Validation passed successfully.");
     }
 }
 

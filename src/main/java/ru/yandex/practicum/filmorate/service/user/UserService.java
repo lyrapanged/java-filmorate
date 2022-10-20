@@ -1,9 +1,9 @@
 package ru.yandex.practicum.filmorate.service.user;
 
-import lombok.NonNull;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.UserIdException;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
@@ -13,27 +13,33 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Data
 public class UserService {
 
+    private final InMemoryUserStorage inMemoryUserStorage;
 
-    public void addFriend(@NonNull User first, @NonNull User second) {
-        if (first.getId().equals(second.getId())) {
-            throw new UserIdException("You cannot add yourself");
+    public void addFriend(Integer firstId, Integer secondId) {
+        if (firstId.equals(secondId)) {
+            throw new NotFoundException("You cannot remove yourself");
         }
+        User first = inMemoryUserStorage.getUser(firstId);
+        User second = inMemoryUserStorage.getUser(secondId);
         first.setFriends(second.getId());
         second.setFriends(first.getId());
     }
 
-    public void removeFriend(@NonNull User first, @NonNull User second) {
-        if (first.getId().equals(second.getId())) {
-            throw new UserIdException("You cannot remove yourself");
+    public void removeFriend(Integer firstId, Integer secondId) {
+        if (firstId.equals(secondId)) {
+            throw new NotFoundException("You cannot remove yourself");
         }
+        User first = inMemoryUserStorage.getUser(firstId);
+        User second = inMemoryUserStorage.getUser(secondId);
         first.removeFriends(second.getId());
         second.removeFriends(first.getId());
 
     }
 
-    public List<User> getFriends(Integer id, @NonNull InMemoryUserStorage inMemoryUserStorage) {
+    public List<User> getFriends(Integer id) {
         List<User> userFriends = new ArrayList<>();
         for (Integer friend : inMemoryUserStorage.getUser(id).getFriends()) {
             userFriends.add(inMemoryUserStorage.getUser(friend));
@@ -41,11 +47,12 @@ public class UserService {
         return userFriends;
     }
 
-    public List<User> commonFriends(@NonNull User first, @NonNull User second,
-                                    InMemoryUserStorage inMemoryUserStorage) {
-        if (first.getId().equals(second.getId())) {
-            throw new UserIdException("You cannot view mutual friends with yourself");
+    public List<User> commonFriends(Integer firstId, Integer secondId) {
+        if (firstId.equals(secondId)) {
+            throw new NotFoundException("You cannot view mutual friends with yourself");
         }
+        User first = inMemoryUserStorage.getUser(firstId);
+        User second = inMemoryUserStorage.getUser(secondId);
         List<Integer> foo = first.getFriends().stream()
                 .filter(second.getFriends()::contains)
                 .collect(Collectors.toList());

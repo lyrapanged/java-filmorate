@@ -21,6 +21,7 @@ import java.util.Set;
 public class User {
     private Integer id;
     @Email
+    @NotNull
     private String email;
     @NotBlank
     private String login;

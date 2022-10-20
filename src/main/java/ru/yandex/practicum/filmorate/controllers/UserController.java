@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controllers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.user.UserService;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
@@ -16,50 +17,63 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final InMemoryUserStorage inMemoryUserStorage;
+
     private final UserService userService;
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
-        inMemoryUserStorage.addUser(user);
+        validationUser(user);
+        userService.getInMemoryUserStorage().addUser(user);
         return user;
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-        inMemoryUserStorage.updateUser(user);
+        validationUser(user);
+        userService.getInMemoryUserStorage().updateUser(user);
         return user;
     }
 
     @GetMapping
     public List<User> getAllUsers() {
-        return inMemoryUserStorage.getAllUsers();
+        return userService.getInMemoryUserStorage().getAllUsers();
     }
 
     @GetMapping(value = "{id}")
     public User getUser(@PathVariable Integer id) {
-        return inMemoryUserStorage.getUser(id);
+        return userService.getInMemoryUserStorage().getUser(id);
     }
 
     @PutMapping(value = "{id}/friends/{friendId}")
     public void addFriends(@PathVariable Integer id, @PathVariable Integer friendId) {
-        userService.addFriend(inMemoryUserStorage.getUser(id), inMemoryUserStorage.getUser(friendId));
+        userService.addFriend(id,friendId);
 
     }
 
     @DeleteMapping(value = "{id}/friends/{friendId}")
     public void removeFriend(@PathVariable Integer id, @PathVariable Integer friendId) {
-        userService.removeFriend(inMemoryUserStorage.getUser(id), inMemoryUserStorage.getUser(friendId));
+        userService.removeFriend(id,friendId);
     }
 
     @GetMapping(value = "{id}/friends")
     public List<User> getFriends(@PathVariable Integer id) {
-        return userService.getFriends(id, inMemoryUserStorage);
+        return userService.getFriends(id);
     }
 
     @GetMapping(value = "{id}/friends/common/{otherId}")//
     public List<User> getCommonFriends(@PathVariable Integer id, @PathVariable Integer otherId) {
-        return userService.commonFriends(
-                inMemoryUserStorage.getUser(id),inMemoryUserStorage.getUser(otherId), inMemoryUserStorage);
+        return userService.commonFriends(id,otherId);
+    }
+
+    private void validationUser(User user) {
+        if (user.getLogin().contains(" ")) {
+            log.error("Bad login");
+            throw new ValidationException("Login cannot be empty and contain spaces.");
+        }
+        if (user.getName() == null || user.getName().isBlank()) {
+            log.info("Name has been set to Login");
+            user.setName(user.getLogin());
+        }
+        log.info("Validation passed successfully");
     }
 }
