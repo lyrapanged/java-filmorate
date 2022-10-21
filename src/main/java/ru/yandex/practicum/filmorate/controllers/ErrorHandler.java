@@ -18,12 +18,6 @@ public class ErrorHandler {
     @ExceptionHandler
     public ResponseEntity<String> handleValidationException(final ValidationException e) {
         log.error("Invalid validation");
-        return new ResponseEntity<>(e.getMessage(),HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<String> releaseDataException(final ReleaseDataException e) {
-        log.error("Incorrect release data");
         return new ResponseEntity<>(e.getMessage(),HttpStatus.BAD_REQUEST);
     }
 

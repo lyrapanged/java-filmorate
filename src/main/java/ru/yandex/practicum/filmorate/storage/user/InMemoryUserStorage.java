@@ -6,20 +6,17 @@ import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Integer, User> users = new HashMap<>();
-    private Integer IdUser = 0;
+    private Integer idUser = 0;
 
     @Override
     public User addUser(User user) {
-        user.setId(++IdUser);
+        user.setId(++idUser);
         users.put(user.getId(), user);
         log.info("User added.");
         return user;
@@ -29,7 +26,7 @@ public class InMemoryUserStorage implements UserStorage {
     public User updateUser(User user) {
         if (users.get(user.getId()) == null) {
             log.error("Bad id");
-            throw new ValidationException("ID doesn't exist");
+            throw new NotFoundException("ID doesn't exist");
         }
         users.put(user.getId(), user);
         log.info("User updated.");
@@ -44,10 +41,6 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User getUser(Integer id) {
-        return users.entrySet().stream()
-                .filter(p -> p.getKey().equals(id))
-                .findFirst()
-                .map(p -> p.getValue())
-                .orElseThrow(() -> new NotFoundException("This user id does not exist"));
+        return Optional.ofNullable(users.get(id)).orElseThrow(() -> new NotFoundException("User id doesn't exist"));
     }
 }

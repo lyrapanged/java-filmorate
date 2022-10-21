@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.ReleaseDataException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
@@ -29,25 +28,25 @@ public class FilmController {
     @PostMapping()
     public Film addFilm(@Valid @RequestBody Film film) {
         validationFilm(film);
-        filmService.getInMemoryFilmStorage().addFilm(film);
+        filmService.getFilmStorage().addFilm(film);
         return film;
     }
 
     @PutMapping()
     public Film updateFilm(@Valid @RequestBody Film film) {
         validationFilm(film);
-        filmService.getInMemoryFilmStorage().updateFilm(film);
+        filmService.getFilmStorage().updateFilm(film);
         return film;
     }
 
     @GetMapping(value = "{id}")
     public Film getFilm(@Valid @PathVariable Integer id) {
-        return filmService.getInMemoryFilmStorage().getFilm(id);
+        return filmService.getFilmStorage().getFilm(id);
     }
 
     @GetMapping()
     public List<Film> getFilms() {
-        return filmService.getInMemoryFilmStorage().getFilms();
+        return filmService.getFilmStorage().getFilms();
     }
 
     @PutMapping(value = "{id}/like/{userId}")
@@ -68,7 +67,7 @@ public class FilmController {
     private void validationFilm(Film film) {
         if (film.getReleaseDate().isBefore(LOWER_DATE)) {
             log.error("Bad release date");
-            throw new ReleaseDataException("Release date - no earlier than December 28, 1895.");
+            throw new ValidationException("Release date - no earlier than December 28, 1895.");
         }
         log.info("Validation passed successfully.");
     }

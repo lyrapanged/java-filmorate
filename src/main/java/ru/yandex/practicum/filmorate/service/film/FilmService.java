@@ -18,25 +18,25 @@ import java.util.stream.Collectors;
 @Data
 public class FilmService {
 
-    private final FilmStorage inMemoryFilmStorage;
-    private final UserStorage inMemoryUserStorage;
+    private final FilmStorage filmStorage;
+    private final UserStorage userStorage;
 
     public void addLike(Integer idFilm, Integer idUser) {
-        Film film = inMemoryFilmStorage.getFilm(idFilm);
-        User user = inMemoryUserStorage.getUser(idUser);
+        Film film = filmStorage.getFilm(idFilm);
+        User user = userStorage.getUser(idUser);
         film.setFilmLikes(user.getId());
         film.setLikesCounter(film.getFilmLikes().size());
     }
 
     public void removeLike(Integer idFilm, Integer idUser) {
-        Film film = inMemoryFilmStorage.getFilm(idFilm);
-        User user = inMemoryUserStorage.getUser(idUser);
+        Film film = filmStorage.getFilm(idFilm);
+        User user = userStorage.getUser(idUser);
         film.removeLike(user.getId());
         film.setLikesCounter(film.getFilmLikes().size());
     }
 
     public Set<Film> topFilms(Integer count) {
-        return inMemoryFilmStorage.getFilms().stream()
+        return filmStorage.getFilms().stream()
                 .sorted(Comparator.comparing(Film::getLikesCounter)
                         .reversed())
                 .limit(count).collect(Collectors.toSet());

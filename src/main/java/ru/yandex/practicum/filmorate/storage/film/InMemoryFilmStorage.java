@@ -27,7 +27,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Film updateFilm(Film film) {
         if (films.get(film.getId()) == null) {
             log.error("Bad id");
-            throw new ValidationException("ID doesn't exist");
+            throw new NotFoundException("ID doesn't exist");
         }
         films.put(film.getId(), film);
         log.info("Film updated.");
@@ -42,10 +42,11 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film getFilm(Integer id) {
-        return films.entrySet().stream()
+        /*return films.entrySet().stream()
                 .filter(p -> p.getKey().equals(id))
                 .findFirst()
                 .map(Map.Entry::getValue)
-                .orElseThrow(() -> new NotFoundException("id does not exist"));
+                .orElseThrow(() -> new NotFoundException("id does not exist"));*/
+        return Optional.ofNullable(films.get(id)).orElseThrow((() -> new NotFoundException("Film id doesn't exist")));
     }
 }
