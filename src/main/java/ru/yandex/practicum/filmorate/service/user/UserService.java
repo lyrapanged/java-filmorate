@@ -1,30 +1,42 @@
 package ru.yandex.practicum.filmorate.service.user;
 
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Data
 public class UserService {
 
     private final UserStorage userStorage;
+
+    public void addUser(User user) {
+        userStorage.addUser(user);
+    }
+
+    public void updateUser(User user) {
+        userStorage.updateUser(user);
+    }
+
+    public List<User> getAllUsers() {
+        return userStorage.getAllUsers();
+    }
+
+    public User getUser(Integer id) {
+        return userStorage.getUser(id).orElseThrow(() -> new NotFoundException("User id doesn't exist"));
+    }
 
     public void addFriend(Integer firstId, Integer secondId) {
         if (firstId.equals(secondId)) {
             throw new NotFoundException("You cannot remove yourself");
         }
-        User first = userStorage.getUser(firstId);
-        User second = userStorage.getUser(secondId);
+        User first = getUser(firstId);
+        User second = getUser(secondId);
         first.setFriends(second.getId());
         second.setFriends(first.getId());
     }
@@ -33,16 +45,16 @@ public class UserService {
         if (firstId.equals(secondId)) {
             throw new NotFoundException("You cannot remove yourself");
         }
-        User first = userStorage.getUser(firstId);
-        User second = userStorage.getUser(secondId);
+        User first = getUser(firstId);
+        User second = getUser(secondId);
         first.removeFriends(second.getId());
         second.removeFriends(first.getId());
 
     }
 
     public List<User> getFriends(Integer id) {
-        return userStorage.getUser(id).getFriends().stream()
-                .map(userStorage::getUser)
+        return getUser(id).getFriends().stream()
+                .map(this::getUser)
                 .collect(Collectors.toList());
     }
 
@@ -50,11 +62,11 @@ public class UserService {
         if (firstId.equals(secondId)) {
             throw new NotFoundException("You cannot view mutual friends with yourself");
         }
-        User first = userStorage.getUser(firstId);
-        User second = userStorage.getUser(secondId);
+        User first = getUser(firstId);
+        User second = getUser(secondId);
         return first.getFriends().stream()
                 .filter(second.getFriends()::contains)
-                .map(userStorage::getUser)
+                .map(this::getUser)
                 .collect(Collectors.toList());
     }
 }

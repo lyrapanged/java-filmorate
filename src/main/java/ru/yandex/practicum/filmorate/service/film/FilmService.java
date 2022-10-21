@@ -1,36 +1,53 @@
 package ru.yandex.practicum.filmorate.service.film;
 
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.user.UserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 
 @Service
 @RequiredArgsConstructor
-@Data
 public class FilmService {
 
     private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
+    //private final UserStorage userStorage;
+    private final UserService userService;
+
+    public void addFilm(Film film) {
+        filmStorage.addFilm(film);
+    }
+
+    public void updateFilm(Film film) {
+        filmStorage.updateFilm(film);
+    }
+
+    public Film getFilm(Integer id) {
+        return filmStorage.getFilm(id).orElseThrow(() -> new NotFoundException("Film id doesn't exist"));
+    }
+
+    public List<Film> getFilms() {
+        return filmStorage.getFilms();
+    }
 
     public void addLike(Integer idFilm, Integer idUser) {
-        Film film = filmStorage.getFilm(idFilm);
-        User user = userStorage.getUser(idUser);
+        Film film = getFilm(idFilm);
+        User user = userService.getUser(idUser);
         film.setFilmLikes(user.getId());
         film.setLikesCounter(film.getFilmLikes().size());
     }
 
     public void removeLike(Integer idFilm, Integer idUser) {
-        Film film = filmStorage.getFilm(idFilm);
-        User user = userStorage.getUser(idUser);
+        Film film = getFilm(idFilm);
+        User user = userService.getUser(idUser);
         film.removeLike(user.getId());
         film.setLikesCounter(film.getFilmLikes().size());
     }

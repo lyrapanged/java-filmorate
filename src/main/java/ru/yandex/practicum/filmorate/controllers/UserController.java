@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.user.UserService;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -23,36 +22,36 @@ public class UserController {
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
         validationUser(user);
-        userService.getUserStorage().addUser(user);
+        userService.addUser(user);
         return user;
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
         validationUser(user);
-        userService.getUserStorage().updateUser(user);
+        userService.updateUser(user);
         return user;
     }
 
     @GetMapping
     public List<User> getAllUsers() {
-        return userService.getUserStorage().getAllUsers();
+        return userService.getAllUsers();
     }
 
     @GetMapping(value = "{id}")
     public User getUser(@PathVariable Integer id) {
-        return userService.getUserStorage().getUser(id);
+        return userService.getUser(id);
     }
 
     @PutMapping(value = "{id}/friends/{friendId}")
     public void addFriends(@PathVariable Integer id, @PathVariable Integer friendId) {
-        userService.addFriend(id,friendId);
+        userService.addFriend(id, friendId);
 
     }
 
     @DeleteMapping(value = "{id}/friends/{friendId}")
     public void removeFriend(@PathVariable Integer id, @PathVariable Integer friendId) {
-        userService.removeFriend(id,friendId);
+        userService.removeFriend(id, friendId);
     }
 
     @GetMapping(value = "{id}/friends")
@@ -62,7 +61,7 @@ public class UserController {
 
     @GetMapping(value = "{id}/friends/common/{otherId}")//
     public List<User> getCommonFriends(@PathVariable Integer id, @PathVariable Integer otherId) {
-        return userService.commonFriends(id,otherId);
+        return userService.commonFriends(id, otherId);
     }
 
     private void validationUser(User user) {

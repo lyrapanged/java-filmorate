@@ -28,25 +28,25 @@ public class FilmController {
     @PostMapping()
     public Film addFilm(@Valid @RequestBody Film film) {
         validationFilm(film);
-        filmService.getFilmStorage().addFilm(film);
+        filmService.addFilm(film);
         return film;
     }
 
     @PutMapping()
     public Film updateFilm(@Valid @RequestBody Film film) {
         validationFilm(film);
-        filmService.getFilmStorage().updateFilm(film);
+        filmService.updateFilm(film);
         return film;
     }
 
     @GetMapping(value = "{id}")
     public Film getFilm(@Valid @PathVariable Integer id) {
-        return filmService.getFilmStorage().getFilm(id);
+        return filmService.getFilm(id);
     }
 
     @GetMapping()
     public List<Film> getFilms() {
-        return filmService.getFilmStorage().getFilms();
+        return filmService.getFilms();
     }
 
     @PutMapping(value = "{id}/like/{userId}")
