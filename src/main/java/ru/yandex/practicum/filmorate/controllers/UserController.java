@@ -1,49 +1,67 @@
 package ru.yandex.practicum.filmorate.controllers;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.user.UserService;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
+@RequiredArgsConstructor
 public class UserController {
 
-    private final Map<Integer, User> users = new HashMap<>();
-    private Integer IdUser = 0;
+
+    private final UserService userService;
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
         validationUser(user);
-        user.setId(++IdUser);
-        users.put(user.getId(), user);
-        log.info("User added.");
+        userService.addUser(user);
         return user;
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
         validationUser(user);
-        if (users.get(user.getId()) == null) {
-            log.error("Bad id");
-            throw new ValidationException("ID doesn't exist");
-        }
-        users.put(user.getId(), user);
-        log.info("User updated.");
+        userService.updateUser(user);
         return user;
     }
 
     @GetMapping
     public List<User> getAllUsers() {
-        log.info("Request getAllUser.");
-        return new ArrayList<>(users.values());
+        return userService.getAllUsers();
+    }
+
+    @GetMapping(value = "{id}")
+    public User getUser(@PathVariable Integer id) {
+        return userService.getUser(id);
+    }
+
+    @PutMapping(value = "{id}/friends/{friendId}")
+    public void addFriends(@PathVariable Integer id, @PathVariable Integer friendId) {
+        userService.addFriend(id, friendId);
+
+    }
+
+    @DeleteMapping(value = "{id}/friends/{friendId}")
+    public void removeFriend(@PathVariable Integer id, @PathVariable Integer friendId) {
+        userService.removeFriend(id, friendId);
+    }
+
+    @GetMapping(value = "{id}/friends")
+    public List<User> getFriends(@PathVariable Integer id) {
+        return userService.getFriends(id);
+    }
+
+    @GetMapping(value = "{id}/friends/common/{otherId}")//
+    public List<User> getCommonFriends(@PathVariable Integer id, @PathVariable Integer otherId) {
+        return userService.commonFriends(id, otherId);
     }
 
     private void validationUser(User user) {
