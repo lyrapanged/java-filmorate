@@ -1,9 +1,9 @@
-MERGE INTO MPA_RATING (ID_RATING, name)
-    VALUES (1, 'G'),
-           (2, 'PG'),
-           (3, 'PG-13'),
-           (4, 'R'),
-           (5, 'NC-17');
+MERGE INTO MPA_RATING (ID_RATING, name,DESCRIPTION)
+    VALUES (1, 'G','1'),
+           (2, 'PG','2'),
+           (3, 'PG-13','3'),
+           (4, 'R','4'),
+           (5, 'NC-17','5');
 
 MERGE INTO GENRES (ID_GENRE, name)
     VALUES (1, 'Комедия'),
