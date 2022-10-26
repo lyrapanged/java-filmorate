@@ -9,6 +9,7 @@ import java.time.LocalDate;
 
 class FilmControllerTest {
 
+/*
     //private final FilmController filmController = new FilmController();
     private final FilmController filmController;
     private final Film film = Film.builder()
@@ -23,5 +24,6 @@ class FilmControllerTest {
     public FilmControllerTest(FilmController filmController) {
         this.filmController = filmController;
     }
+*/
 
 }

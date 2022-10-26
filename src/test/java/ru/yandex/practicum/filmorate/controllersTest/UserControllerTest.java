@@ -8,6 +8,7 @@ import java.time.LocalDate;
 
 
 class UserControllerTest {
+/*
     private final User user = User.builder()
             .id(780)
             .email("@dada")
@@ -22,5 +23,6 @@ class UserControllerTest {
     public UserControllerTest(UserController userController) {
         this.userController = userController;
     }
+*/
 
 }
