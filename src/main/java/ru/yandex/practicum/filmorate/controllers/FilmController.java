@@ -12,7 +12,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/films")
@@ -60,8 +59,8 @@ public class FilmController {
     }
 
     @GetMapping(value = "/popular")
-    public Set<Film> getMostPopularMovies(@RequestParam(defaultValue = "10", required = false) @Positive Integer count) {
-        return filmService.topFilms(count);
+    public List<Film> getMostPopularMovies(@RequestParam(defaultValue = "10", required = false) @Positive Integer count) {
+        return filmService.getMostPopularMovies(count);
     }
 
     private void validationFilm(Film film) {

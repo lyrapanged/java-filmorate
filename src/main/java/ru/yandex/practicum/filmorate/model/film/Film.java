@@ -4,7 +4,9 @@ import lombok.*;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -26,14 +28,23 @@ public class Film {
     @Max(5000)
     private int duration;
     private Set<Integer> filmLikes = new HashSet<>();
-    private int likesCounter;
-
-    public void setFilmLikes(Integer idUser) {
-        filmLikes.add(idUser);
-    }
+    @NotNull
+    private Mpa mpa;
+    private Set<Genre> genres = new HashSet<>();
 
     public void removeLike(Integer idUser) {
         filmLikes.remove(idUser);
+    }
+
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> values = new HashMap<>();
+        values.put("name", name);
+        values.put("description", description);
+        values.put("release_date", releaseDate);
+        values.put("duration", duration);
+        values.put("id_rating", mpa.getId());
+        return values;
     }
 
 

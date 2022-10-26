@@ -16,7 +16,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
 
-
     private final UserService userService;
 
     @PostMapping
@@ -49,7 +48,7 @@ public class UserController {
 
     }
 
-    @DeleteMapping(value = "{id}/friends/{friendId}")
+    @DeleteMapping(value = "/{id}/friends/{friendId}")
     public void removeFriend(@PathVariable Integer id, @PathVariable Integer friendId) {
         userService.removeFriend(id, friendId);
     }

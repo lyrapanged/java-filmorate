@@ -1,26 +1,32 @@
 package ru.yandex.practicum.filmorate.service.film;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.film.Film;
-import ru.yandex.practicum.filmorate.model.user.User;
-import ru.yandex.practicum.filmorate.service.user.UserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.LikeStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 
 @Service
-@RequiredArgsConstructor
 public class FilmService {
 
     private final FilmStorage filmStorage;
-    //private final UserStorage userStorage;
-    private final UserService userService;
+    private final UserStorage userStorage;
+    private final LikeStorage likeStorage;
+
+    @Autowired
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
+                       @Qualifier("userDbStorage") UserStorage userStorage,
+                       LikeStorage likeStorage) {
+        this.filmStorage = filmStorage;
+        this.userStorage = userStorage;
+        this.likeStorage = likeStorage;
+    }
 
     public void addFilm(Film film) {
         filmStorage.addFilm(film);
@@ -38,24 +44,21 @@ public class FilmService {
         return filmStorage.getFilms();
     }
 
-    public void addLike(Integer idFilm, Integer idUser) {
-        Film film = getFilm(idFilm);
-        User user = userService.getUser(idUser);
-        film.setFilmLikes(user.getId());
-        film.setLikesCounter(film.getFilmLikes().size());
+    public void addLike(Integer filmId, Integer userId) {
+        filmStorage.getFilm(filmId).orElseThrow(() -> new NotFoundException("Film or film doesn't exist"));
+        userStorage.getUser(userId).orElseThrow(() -> new NotFoundException("User or film doesn't exist"));
+        likeStorage.addLike(filmId, userId);
     }
 
-    public void removeLike(Integer idFilm, Integer idUser) {
-        Film film = getFilm(idFilm);
-        User user = userService.getUser(idUser);
-        film.removeLike(user.getId());
-        film.setLikesCounter(film.getFilmLikes().size());
+    public void removeLike(Integer filmId, Integer userId) {
+        userStorage.getUser(userId).orElseThrow(() -> new NotFoundException("User or film doesn't exist"));
+        filmStorage.getFilm(filmId).orElseThrow(() -> new NotFoundException("Film or film doesn't exist"));
+        likeStorage.deleteLike(filmId, userId);
+
     }
 
-    public Set<Film> topFilms(Integer count) {
-        return filmStorage.getFilms().stream()
-                .sorted(Comparator.comparing(Film::getLikesCounter)
-                        .reversed())
-                .limit(count).collect(Collectors.toSet());
+    public List<Film> getMostPopularMovies(Integer count) {
+        return likeStorage.getPopularFilms(count);
     }
+
 }
