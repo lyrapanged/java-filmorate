@@ -72,6 +72,6 @@ public class UserDbStorage implements UserStorage {
         String login = rs.getString("login");
         String name = rs.getString("name");
         LocalDate birthday = rs.getDate("birthday").toLocalDate();
-        return new User(id, email, login, name, birthday, null);
+        return new User(id, email, login, name, birthday);
     }
 }

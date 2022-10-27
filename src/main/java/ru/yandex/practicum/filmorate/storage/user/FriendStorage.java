@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.user.User;
@@ -27,7 +28,13 @@ public class FriendStorage {
         userStorage.getUser(userId).orElseThrow(() -> new NotFoundException("User id does not exist"));
         User friend = userStorage.getUser(friendId).orElseThrow(() -> new NotFoundException("Friend id does not exist"));
         boolean status = false;
-        if (friend.getFriends() == null || friend.getFriends().contains(userId)) {
+        String sql1 = "SELECT COUNT(ID_USER)AS C FROM FRIENDS WHERE ID_USER = ? AND ID_FRIEND=?";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql1,userId,friendId);
+        int count = 0;
+        if ((userRows.next())){
+            count = userRows.getInt("C");
+        }
+        if (count != 0) {
             status = true;
             String sql = "UPDATE friends SET ID_USER = ? AND ID_FRIEND = ? AND STATUS = ? " +
                     "WHERE ID_USER = ? AND ID_FRIEND = ?";
@@ -42,7 +49,13 @@ public class FriendStorage {
         User friend = userStorage.getUser(friendId).orElseThrow(() -> new NotFoundException("Friend id does not exist"));
         String sql = "DELETE FROM friends WHERE ID_USER = ? AND ID_FRIEND = ?";
         jdbcTemplate.update(sql, userId, friendId);
-        if (friend.getFriends() == null || friend.getFriends().contains(userId)) {
+        String sql1 = "SELECT COUNT(ID_USER)AS C FROM FRIENDS WHERE ID_USER = ? AND ID_FRIEND=?";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql1,userId,friendId);
+        int count = 0;
+        if ((userRows.next())){
+            count = userRows.getInt("C");
+        }
+        if (count != 0) {
             sql = "UPDATE friends SET ID_USER = ? AND ID_FRIEND = ? AND STATUS = ? " +
                     "WHERE ID_USER = ? AND ID_FRIEND = ?";
             jdbcTemplate.update(sql, friendId, userId, false, friendId, userId);
@@ -71,6 +84,6 @@ public class FriendStorage {
         String login = rs.getString("login");
         String name = rs.getString("name");
         LocalDate birthday = rs.getDate("birthday").toLocalDate();
-        return new User(id, email, login, name, birthday, null);
+        return new User(id, email, login, name, birthday);
     }
 }
