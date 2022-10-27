@@ -18,22 +18,26 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private final LikeStorage likeStorage;
+    private final GenreService genreService;
 
     @Autowired
     public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
                        @Qualifier("userDbStorage") UserStorage userStorage,
-                       LikeStorage likeStorage) {
+                       LikeStorage likeStorage, GenreService genreService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.likeStorage = likeStorage;
+        this.genreService = genreService;
     }
 
     public void addFilm(Film film) {
         filmStorage.addFilm(film);
+        genreService.putGenres(film);
     }
 
     public void updateFilm(Film film) {
         filmStorage.updateFilm(film);
+        genreService.putGenres(film);
     }
 
     public Film getFilm(Integer id) {

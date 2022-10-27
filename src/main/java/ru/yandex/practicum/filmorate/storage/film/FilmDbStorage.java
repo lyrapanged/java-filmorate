@@ -10,8 +10,6 @@ import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.film.Genre;
 import ru.yandex.practicum.filmorate.model.film.Mpa;
-import ru.yandex.practicum.filmorate.service.film.GenreService;
-import ru.yandex.practicum.filmorate.service.film.MpaService;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,9 +22,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
-    private final MpaService mpaService;
-    private final GenreService genreService;
-    private final LikeStorage likeStorage;
 
 
     @Override
@@ -42,13 +37,7 @@ public class FilmDbStorage implements FilmStorage {
                 .withTableName("films")
                 .usingGeneratedKeyColumns("id_film");
         film.setId(simpleJdbcInsert.executeAndReturnKey(film.toMap()).intValue());
-        film.setMpa(mpaService.getMpaById(film.getMpa().getId()));
-        if (film.getGenres() != null) {
-            for (Genre genre : film.getGenres()) {
-                genre.setName(genreService.getGenreById(genre.getId()).getName());
-            }
-            genreService.putGenres(film);
-        }
+        film.setMpa(film.getMpa());
         return film;
     }
 
@@ -68,17 +57,12 @@ public class FilmDbStorage implements FilmStorage {
                 film.getDuration(),
                 film.getMpa().getId(),
                 film.getId()) != 0) {
-            film.setMpa(mpaService.getMpaById(film.getMpa().getId()));
             if (film.getGenres() != null) {
                 Collection<Genre> sortGenres = film.getGenres().stream()
                         .sorted(Comparator.comparing(Genre::getId))
                         .collect(Collectors.toList());
                 film.setGenres(new LinkedHashSet<>(sortGenres));
-                for (Genre genre : film.getGenres()) {
-                    genre.setName(genreService.getGenreById(genre.getId()).getName());
-                }
             }
-            genreService.putGenres(film);
             return film;
         } else {
             throw new NotFoundException("Film doesn't exist");
@@ -94,15 +78,31 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sql,(rs, rowNum) -> makeFilm(rs),filmId).stream().findFirst();
     }
 
-    private Film makeFilm(ResultSet rs) throws SQLException {
-        Integer id = rs.getInt("id_film");
-        String email = rs.getString("name");
-        String login = rs.getString("description");
-        LocalDate releaseDate = rs.getDate("release_Date").toLocalDate();
-        Integer duration = rs.getInt("duration");
-        Set<Integer> users = new HashSet<>(likeStorage.getLikes(rs.getInt("id_film")));
-        Mpa mpa =  mpaService.getMpaById(rs.getInt("id_rating"));
-        Set<Genre> genres = genreService.getFilmGenres(rs.getInt("id_film"));
-        return new Film(id,email,login,releaseDate,duration,users,mpa,genres);
+private Film makeFilm(ResultSet rs) throws SQLException {
+    Integer idFilm = rs.getInt("id_film");
+    String email = rs.getString("name");
+    String login = rs.getString("description");
+    LocalDate releaseDate = rs.getDate("release_Date").toLocalDate();
+    Integer duration = rs.getInt("duration");
+    String sqlNameMpa = "SELECT * FROM MPA_RATING WHERE ID_RATING IN (" +
+            "SELECT ID_RATING FROM FILMS WHERE ID_FILM = ?)";
+    String nameMpa = jdbcTemplate.query(sqlNameMpa,
+                    (rsMpa,rowNum) -> rsMpa.getString("name"),idFilm).stream()
+            .findAny().orElseThrow(()-> new NotFoundException("Bad name"));
+    Mpa mpa = new Mpa(rs.getInt("id_rating"),nameMpa);
+    String sqlGenres = "SELECT * FROM GENRES WHERE ID_GENRE IN " +
+            "(SELECT ID_GENRE FROM FILM_GENRE WHERE FILM_GENRE.ID_FILM = ?)";
+    Set<Genre> genres = new HashSet<>(
+            jdbcTemplate.query(sqlGenres, (rsGenre, rowNum) -> makeGenre(rsGenre), idFilm));
+    return new Film(idFilm,email,login,releaseDate,duration,mpa,genres);
+
+}
+
+    private Genre makeGenre(ResultSet rs) throws SQLException {
+        int id = rs.getInt("id_genre");
+        String name = rs.getString("name");
+        return new Genre(id,name);
     }
 }
+
+

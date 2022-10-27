@@ -3,11 +3,10 @@ package ru.yandex.practicum.filmorate.storage.film;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.film.Genre;
 import ru.yandex.practicum.filmorate.model.film.Mpa;
-import ru.yandex.practicum.filmorate.service.film.GenreService;
-import ru.yandex.practicum.filmorate.service.film.MpaService;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,9 +19,6 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class LikeStorage {
     private final JdbcTemplate jdbcTemplate;
-    private final MpaService mpaService;
-    private final GenreService genreService;
-
 
     public void addLike(Integer filmId, Integer userId) {
         String sql = "INSERT INTO film_likes (ID_FILM, ID_USER) VALUES (?, ?)";
@@ -48,14 +44,28 @@ public class LikeStorage {
     }
 
     private Film makeFilm(ResultSet rs) throws SQLException {
-        Integer id = rs.getInt("id_film");
+        Integer idFilm = rs.getInt("id_film");
         String email = rs.getString("name");
         String login = rs.getString("description");
         LocalDate releaseDate = rs.getDate("release_Date").toLocalDate();
         Integer duration = rs.getInt("duration");
-        Set<Integer> users = new HashSet<>(getLikes(rs.getInt("id_film")));
-        Mpa mpa =  mpaService.getMpaById(rs.getInt("id_rating"));
-        Set<Genre> genres = genreService.getFilmGenres(rs.getInt("id_film"));
-        return new Film(id,email,login,releaseDate,duration,users,mpa,genres);
+        String sqlNameMpa = "SELECT * FROM MPA_RATING WHERE ID_RATING IN (" +
+                "SELECT ID_RATING FROM FILMS WHERE ID_FILM = ?)";
+        String nameMpa = jdbcTemplate.query(sqlNameMpa,
+                        (rsMpa,rowNum) -> rsMpa.getString("name"),idFilm).stream()
+                .findAny().orElseThrow(()-> new NotFoundException("Bad name"));
+        Mpa mpa = new Mpa(rs.getInt("id_rating"),nameMpa);
+        String sqlGenres = "SELECT * FROM GENRES WHERE ID_GENRE IN " +
+                "(SELECT ID_GENRE FROM FILM_GENRE WHERE FILM_GENRE.ID_FILM = ?)";
+        Set<Genre> genres = new HashSet<>(
+                jdbcTemplate.query(sqlGenres, (rsGenre, rowNum) -> makeGenre(rsGenre), idFilm));
+        return new Film(idFilm,email,login,releaseDate,duration,mpa,genres);
+
+    }
+
+    private Genre makeGenre(ResultSet rs) throws SQLException {
+        int id = rs.getInt("id_genre");
+        String name = rs.getString("name");
+        return new Genre(id,name);
     }
 }
