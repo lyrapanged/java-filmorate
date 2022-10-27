@@ -25,7 +25,7 @@ public class LikeStorage {
         jdbcTemplate.update(sql, filmId, userId);
     }
 
-    public void deleteLike(Integer filmId, Integer userId) {
+    public void removeLike(Integer filmId, Integer userId) {
         String sql = "DELETE FROM film_likes WHERE ID_FILM = ? AND ID_USER = ?";
         jdbcTemplate.update(sql, filmId, userId);
     }
@@ -52,20 +52,20 @@ public class LikeStorage {
         String sqlNameMpa = "SELECT * FROM MPA_RATING WHERE ID_RATING IN (" +
                 "SELECT ID_RATING FROM FILMS WHERE ID_FILM = ?)";
         String nameMpa = jdbcTemplate.query(sqlNameMpa,
-                        (rsMpa,rowNum) -> rsMpa.getString("name"),idFilm).stream()
-                .findAny().orElseThrow(()-> new NotFoundException("Bad name"));
-        Mpa mpa = new Mpa(rs.getInt("id_rating"),nameMpa);
+                        (rsMpa, rowNum) -> rsMpa.getString("name"), idFilm).stream()
+                .findAny().orElseThrow(() -> new NotFoundException("Bad name"));
+        Mpa mpa = new Mpa(rs.getInt("id_rating"), nameMpa);
         String sqlGenres = "SELECT * FROM GENRES WHERE ID_GENRE IN " +
                 "(SELECT ID_GENRE FROM FILM_GENRE WHERE FILM_GENRE.ID_FILM = ?)";
         Set<Genre> genres = new HashSet<>(
                 jdbcTemplate.query(sqlGenres, (rsGenre, rowNum) -> makeGenre(rsGenre), idFilm));
-        return new Film(idFilm,email,login,releaseDate,duration,mpa,genres);
+        return new Film(idFilm, email, login, releaseDate, duration, mpa, genres);
 
     }
 
     private Genre makeGenre(ResultSet rs) throws SQLException {
         int id = rs.getInt("id_genre");
         String name = rs.getString("name");
-        return new Genre(id,name);
+        return new Genre(id, name);
     }
 }

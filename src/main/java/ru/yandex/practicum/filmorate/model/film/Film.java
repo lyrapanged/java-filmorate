@@ -31,14 +31,6 @@ public class Film {
     private Mpa mpa;
     private Set<Genre> genres = new HashSet<>();
 
-    public Film(Integer id, String name, String description, LocalDate releaseDate, int duration) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.releaseDate = releaseDate;
-        this.duration = duration;
-    }
-
     public Map<String, Object> toMap() {
         Map<String, Object> values = new HashMap<>();
         values.put("name", name);

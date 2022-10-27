@@ -43,7 +43,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        getUser(user.getId()).orElseThrow(()-> new NotFoundException("User does not exist"));
+        getUser(user.getId()).orElseThrow(() -> new NotFoundException("User does not exist"));
         String sqlQuery = "UPDATE users SET " +
                 " email = ?, login = ?, name = ?, birthday = ? " +
                 "WHERE id_user = ?";
@@ -63,7 +63,7 @@ public class UserDbStorage implements UserStorage {
             throw new ValidationException("Bad id");
         }
         String sql = "SELECT * FROM users WHERE ID_USER = ?";
-        return jdbcTemplate.query(sql,(rs,rowNum) -> makeUser(rs),userId).stream().findFirst();
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs), userId).stream().findFirst();
     }
 
     private User makeUser(ResultSet rs) throws SQLException {

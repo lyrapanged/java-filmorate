@@ -57,7 +57,7 @@ public class FilmService {
     public void removeLike(Integer filmId, Integer userId) {
         userStorage.getUser(userId).orElseThrow(() -> new NotFoundException("User or film doesn't exist"));
         filmStorage.getFilm(filmId).orElseThrow(() -> new NotFoundException("Film or film doesn't exist"));
-        likeStorage.deleteLike(filmId, userId);
+        likeStorage.removeLike(filmId, userId);
 
     }
 

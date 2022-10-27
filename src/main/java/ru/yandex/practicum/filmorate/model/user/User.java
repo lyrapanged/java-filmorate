@@ -1,9 +1,6 @@
 package ru.yandex.practicum.filmorate.model.user;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -17,6 +14,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class User {
     private Integer id;
     @Email
@@ -37,4 +35,5 @@ public class User {
         values.put("birthday", birthday);
         return values;
     }
+
 }

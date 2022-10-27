@@ -62,6 +62,6 @@ public class UserService {
         if (firstId.equals(secondId)) {
             throw new NotFoundException("You cannot view mutual friends with yourself");
         }
-        return friendStorage.commonFriends(firstId,secondId);
+        return friendStorage.commonFriends(firstId, secondId);
     }
 }

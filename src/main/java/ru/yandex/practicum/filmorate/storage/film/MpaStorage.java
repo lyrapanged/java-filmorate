@@ -26,8 +26,8 @@ public class MpaStorage {
 
     public Mpa getMpaById(@NotNull Integer mpaId) {
         String sql = "SELECT * FROM MPA_RATING WHERE ID_RATING = ?";
-        return jdbcTemplate.query(sql,(rs,rowNum) -> makeMpa(rs),mpaId).stream()
-                .findFirst().orElseThrow(()-> new NotFoundException("Mpa doesn't exist"));
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeMpa(rs), mpaId).stream()
+                .findFirst().orElseThrow(() -> new NotFoundException("Mpa doesn't exist"));
     }
 
     private Mpa makeMpa(ResultSet rs) throws SQLException {

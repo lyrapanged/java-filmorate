@@ -36,7 +36,7 @@ public class GenreStorage {
             throw new ValidationException("Bad id");
         }
         String sql = "SELECT * FROM GENRES WHERE ID_GENRE = ?";
-        return jdbcTemplate.query(sql,(rs,rowNum) -> makeGenre(rs),genreId).stream()
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeGenre(rs), genreId).stream()
                 .findFirst().orElseThrow(() -> new NotFoundException("Bad id"));
     }
 
@@ -49,8 +49,8 @@ public class GenreStorage {
         jdbcTemplate.batchUpdate("INSERT INTO FILM_GENRE (ID_FILM, ID_GENRE) VALUES (?, ?)", new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setInt(1,film.getId());
-                ps.setInt(2,foo.get(i).getId());
+                ps.setInt(1, film.getId());
+                ps.setInt(2, foo.get(i).getId());
             }
 
             @Override

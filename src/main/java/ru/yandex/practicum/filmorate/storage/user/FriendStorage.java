@@ -29,9 +29,9 @@ public class FriendStorage {
         User friend = userStorage.getUser(friendId).orElseThrow(() -> new NotFoundException("Friend id does not exist"));
         boolean status = false;
         String sql1 = "SELECT COUNT(ID_USER)AS C FROM FRIENDS WHERE ID_USER = ? AND ID_FRIEND=?";
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql1,userId,friendId);
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql1, userId, friendId);
         int count = 0;
-        if ((userRows.next())){
+        if ((userRows.next())) {
             count = userRows.getInt("C");
         }
         if (count != 0) {
@@ -50,9 +50,9 @@ public class FriendStorage {
         String sql = "DELETE FROM friends WHERE ID_USER = ? AND ID_FRIEND = ?";
         jdbcTemplate.update(sql, userId, friendId);
         String sql1 = "SELECT COUNT(ID_USER)AS C FROM FRIENDS WHERE ID_USER = ? AND ID_FRIEND=?";
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql1,userId,friendId);
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql1, userId, friendId);
         int count = 0;
-        if ((userRows.next())){
+        if ((userRows.next())) {
             count = userRows.getInt("C");
         }
         if (count != 0) {
