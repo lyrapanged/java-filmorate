@@ -34,10 +34,6 @@ public class User {
     @JsonIgnore
     private transient Set<Integer> friends = new HashSet<>();
 
-    public void setFriends(Integer id) {
-        friends.add(id);
-    }
-
     public Map<String, Object> toMap() {
         Map<String, Object> values = new HashMap<>();
         values.put("email", email);

@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
@@ -14,6 +13,9 @@ import ru.yandex.practicum.filmorate.model.film.Mpa;
 import ru.yandex.practicum.filmorate.service.film.GenreService;
 import ru.yandex.practicum.filmorate.service.film.MpaService;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,16 +32,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getFilms() {
         String sql = "SELECT * FROM FILMS";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new Film(
-                rs.getInt("id_film"),
-                rs.getString("name"),
-                rs.getString("description"),
-                rs.getDate("release_Date").toLocalDate(),
-                rs.getInt("duration"),
-                new HashSet<>(likeStorage.getLikes(rs.getInt("id_film"))),
-                mpaService.getMpaById(rs.getInt("id_rating")),
-                genreService.getFilmGenres(rs.getInt("id_film")))
-        );
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
 
     }
 
@@ -64,6 +57,7 @@ public class FilmDbStorage implements FilmStorage {
         if (film == null) {
             throw new ValidationException("Film doesn't exist");
         }
+        getFilm(film.getId()).orElseThrow(()-> new NotFoundException("Films doesn't exist"));
         String sqlQuery = "UPDATE films SET " +
                 "name = ?, description = ?, release_date = ?, duration = ?, " +
                 "ID_RATING = ? WHERE ID_FILM = ?";
@@ -96,26 +90,19 @@ public class FilmDbStorage implements FilmStorage {
         if (filmId == null) {
             throw new NotFoundException("Id doesn't exist");
         }
-        Film film;
-        SqlRowSet filmRows = jdbcTemplate.queryForRowSet("SELECT * FROM films WHERE ID_FILM = ?", filmId);
-        if (filmRows.first()) {
-            Mpa mpa = mpaService.getMpaById(filmRows.getInt("id_rating"));
-            Set<Genre> genres = genreService.getFilmGenres(filmId);
-            film = new Film(
-                    filmRows.getInt("id_film"),
-                    filmRows.getString("name"),
-                    filmRows.getString("description"),
-                    filmRows.getDate("release_date").toLocalDate(),
-                    filmRows.getInt("duration"),
-                    new HashSet<>(likeStorage.getLikes(filmRows.getInt("id_film"))),
-                    mpa,
-                    genres);
-        } else {
-            throw new NotFoundException("Id doesn't exist");
-        }
-        if (film.getGenres().isEmpty()) {
-            film.setGenres(null);
-        }
-        return Optional.ofNullable(film);
+        String sql = "SELECT * FROM films WHERE ID_FILM = ?";
+        return jdbcTemplate.query(sql,(rs, rowNum) -> makeFilm(rs),filmId).stream().findFirst();
+    }
+
+    private Film makeFilm(ResultSet rs) throws SQLException {
+        Integer id = rs.getInt("id_film");
+        String email = rs.getString("name");
+        String login = rs.getString("description");
+        LocalDate releaseDate = rs.getDate("release_Date").toLocalDate();
+        Integer duration = rs.getInt("duration");
+        Set<Integer> users = new HashSet<>(likeStorage.getLikes(rs.getInt("id_film")));
+        Mpa mpa =  mpaService.getMpaById(rs.getInt("id_rating"));
+        Set<Genre> genres = genreService.getFilmGenres(rs.getInt("id_film"));
+        return new Film(id,email,login,releaseDate,duration,users,mpa,genres);
     }
 }

@@ -1,13 +1,12 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.film.Film;
 
 import java.util.*;
 
-@Repository
+
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
 

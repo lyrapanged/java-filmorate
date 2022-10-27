@@ -5,12 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.user.User;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,14 +28,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public List<User> getAllUsers() {
         String sql = "SELECT * FROM users";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new User(
-                rs.getInt("id_user"),
-                rs.getString("email"),
-                rs.getString("login"),
-                rs.getString("name"),
-                rs.getDate("birthday").toLocalDate(),
-                null)
-        );
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs));
     }
 
     @Override
@@ -48,7 +43,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        getUser(user.getId());
+        getUser(user.getId()).orElseThrow(()-> new NotFoundException("User does not exist"));
         String sqlQuery = "UPDATE users SET " +
                 " email = ?, login = ?, name = ?, birthday = ? " +
                 "WHERE id_user = ?";
@@ -67,19 +62,16 @@ public class UserDbStorage implements UserStorage {
         if (userId == null) {
             throw new ValidationException("Bad id");
         }
-        User user;
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet("SELECT * FROM users WHERE ID_USER = ?", userId);
-        if (userRows.first()) {
-            user = new User(
-                    userRows.getInt("id_user"),
-                    userRows.getString("email"),
-                    userRows.getString("login"),
-                    userRows.getString("name"),
-                    userRows.getDate("birthday").toLocalDate(),
-                    null);
-        } else {
-            throw new NotFoundException("Bad user");
-        }
-        return Optional.ofNullable(user);
+        String sql = "SELECT * FROM users WHERE ID_USER = ?";
+        return jdbcTemplate.query(sql,(rs,rowNum) -> makeUser(rs),userId).stream().findFirst();
+    }
+
+    private User makeUser(ResultSet rs) throws SQLException {
+        Integer id = rs.getInt("id_user");
+        String email = rs.getString("email");
+        String login = rs.getString("login");
+        String name = rs.getString("name");
+        LocalDate birthday = rs.getDate("birthday").toLocalDate();
+        return new User(id, email, login, name, birthday, null);
     }
 }

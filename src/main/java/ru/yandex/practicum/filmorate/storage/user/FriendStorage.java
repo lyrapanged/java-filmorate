@@ -7,6 +7,9 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.user.User;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -48,16 +51,26 @@ public class FriendStorage {
 
     public List<User> getFriends(Integer userId) {
         userStorage.getUser(userId).orElseThrow(() -> new NotFoundException("User id does not exist"));
-        String sql = "SELECT ID_FRIEND, email, login, name, birthday FROM friends" +
-                " INNER JOIN users ON friends.ID_FRIEND = users.ID_USER WHERE friends.ID_USER = ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new User(
-                        rs.getInt("id_friend"),
-                        rs.getString("email"),
-                        rs.getString("login"),
-                        rs.getString("name"),
-                        rs.getDate("birthday").toLocalDate(),
-                        null),
-                userId
-        );
+        String sql = "SELECT * FROM USERS WHERE ID_USER in " +
+                "(SELECT FRIENDS.ID_FRIEND FROM FRIENDS WHERE FRIENDS.ID_USER = ?)";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs), userId);
+
+    }
+
+    public List<User> commonFriends(Integer firstId, Integer secondId) {
+        String sql = "SELECT * FROM USERS WHERE ID_USER IN " +
+                "(SELECT ID_FRIEND FROM FRIENDS WHERE ID_USER = ? and ID_FRIEND IN " +
+                "(SELECT ID_FRIEND FROM FRIENDS WHERE ID_USER = ?))";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs)
+                , firstId, secondId);
+    }
+
+    private User makeUser(ResultSet rs) throws SQLException {
+        Integer id = rs.getInt("id_user");
+        String email = rs.getString("email");
+        String login = rs.getString("login");
+        String name = rs.getString("name");
+        LocalDate birthday = rs.getDate("birthday").toLocalDate();
+        return new User(id, email, login, name, birthday, null);
     }
 }

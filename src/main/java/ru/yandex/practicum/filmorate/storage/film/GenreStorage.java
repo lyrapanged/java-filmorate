@@ -1,17 +1,22 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.film.Genre;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
+
 public class GenreStorage {
     private final JdbcTemplate jdbcTemplate;
 
@@ -21,28 +26,18 @@ public class GenreStorage {
     }
 
     public List<Genre> getGenres() {
-        String sql = "SELECT * FROM GENRES";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new Genre(
-                rs.getInt("id_genre"),
-                rs.getString("name"))
-        );
+        String sql = "SELECT * FROM GENRES" +
+                " Order By  ID_GENRE";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeGenre(rs));
     }
 
     public Genre getGenreById(Integer genreId) {
         if (genreId == null) {
             throw new ValidationException("Bad id");
         }
-        Genre genre;
-        SqlRowSet genreRows = jdbcTemplate.queryForRowSet("SELECT * FROM GENRES WHERE ID_GENRE = ?", genreId);
-        if (genreRows.first()) {
-            genre = new Genre(
-                    genreRows.getInt("id_genre"),
-                    genreRows.getString("name")
-            );
-        } else {
-            throw new NotFoundException("Genre does not exist");
-        }
-        return genre;
+        String sql = "SELECT * FROM GENRES WHERE ID_GENRE = ?";
+        return jdbcTemplate.query(sql,(rs,rowNum) -> makeGenre(rs),genreId).stream()
+                .findFirst().orElseThrow(() -> new NotFoundException("Bad id"));
     }
 
     public void delete(Film film) {
@@ -50,19 +45,31 @@ public class GenreStorage {
     }
 
     public void add(Film film) {
-        if (film.getGenres() != null) {
-            for (Genre genre : film.getGenres()) {
-                jdbcTemplate.update("INSERT INTO FILM_GENRE (ID_FILM, ID_GENRE) VALUES (?, ?)",
-                        film.getId(), genre.getId());
+        List<Genre> foo = new ArrayList<>(film.getGenres());
+        jdbcTemplate.batchUpdate("INSERT INTO FILM_GENRE (ID_FILM, ID_GENRE) VALUES (?, ?)", new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setInt(1,film.getId());
+                ps.setInt(2,foo.get(i).getId());
             }
-        }
+
+            @Override
+            public int getBatchSize() {
+                return foo.size();
+            }
+        });
     }
 
     public List<Genre> getFilmGenres(Integer filmId) {
         String sql = "SELECT GENRES.ID_GENRE, NAME FROM FILM_GENRE" +
                 " INNER JOIN GENRES ON FILM_GENRE.ID_GENRE = GENRES.ID_GENRE WHERE ID_FILM = ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new Genre(
-                rs.getInt("id_genre"), rs.getString("name")), filmId
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeGenre(rs), filmId
         );
+    }
+
+    private Genre makeGenre(ResultSet rs) throws SQLException {
+        Integer id = rs.getInt("id_genre");
+        String name = rs.getString("name");
+        return new Genre(id, name);
     }
 }

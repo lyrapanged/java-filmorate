@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.controllersTest;
+package ru.yandex.practicum.filmorate.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.yandex.practicum.filmorate.controllers.FilmController;

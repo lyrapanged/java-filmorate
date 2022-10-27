@@ -9,9 +9,7 @@ import ru.yandex.practicum.filmorate.storage.user.FriendStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class UserService {
@@ -64,11 +62,6 @@ public class UserService {
         if (firstId.equals(secondId)) {
             throw new NotFoundException("You cannot view mutual friends with yourself");
         }
-        userStorage.getUser(firstId).orElseThrow(() -> new NotFoundException("id doesnt exist"));
-        userStorage.getUser(secondId).orElseThrow(() -> new NotFoundException("id doesnt exist"));
-        Set<User> intersection = null;
-        intersection = new HashSet<>(friendStorage.getFriends(firstId));
-        intersection.retainAll(friendStorage.getFriends(secondId));
-        return new ArrayList<User>(intersection);
+        return friendStorage.commonFriends(firstId,secondId);
     }
 }
