@@ -1,11 +1,9 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.user.User;
 
 import java.sql.ResultSet;
@@ -13,20 +11,13 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Repository
 public class FriendStorage {
     private final JdbcTemplate jdbcTemplate;
-    private final UserStorage userStorage;
 
-    @Autowired
-    public FriendStorage(JdbcTemplate jdbcTemplate, @Qualifier("userDbStorage") UserStorage userStorage) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.userStorage = userStorage;
-    }
 
     public void addFriend(Integer userId, Integer friendId) {
-        userStorage.getUser(userId).orElseThrow(() -> new NotFoundException("User id does not exist"));
-        User friend = userStorage.getUser(friendId).orElseThrow(() -> new NotFoundException("Friend id does not exist"));
         boolean status = false;
         String sql1 = "SELECT COUNT(ID_USER)AS C FROM FRIENDS WHERE ID_USER = ? AND ID_FRIEND=?";
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql1, userId, friendId);
@@ -45,8 +36,6 @@ public class FriendStorage {
     }
 
     public void removeFriend(Integer userId, Integer friendId) {
-        userStorage.getUser(userId).orElseThrow(() -> new NotFoundException("User id does not exist"));
-        User friend = userStorage.getUser(friendId).orElseThrow(() -> new NotFoundException("Friend id does not exist"));
         String sql = "DELETE FROM friends WHERE ID_USER = ? AND ID_FRIEND = ?";
         jdbcTemplate.update(sql, userId, friendId);
         String sql1 = "SELECT COUNT(ID_USER)AS C FROM FRIENDS WHERE ID_USER = ? AND ID_FRIEND=?";
@@ -63,7 +52,6 @@ public class FriendStorage {
     }
 
     public List<User> getFriends(Integer userId) {
-        userStorage.getUser(userId).orElseThrow(() -> new NotFoundException("User id does not exist"));
         String sql = "SELECT * FROM USERS WHERE ID_USER in " +
                 "(SELECT FRIENDS.ID_FRIEND FROM FRIENDS WHERE FRIENDS.ID_USER = ?)";
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs), userId);

@@ -40,6 +40,8 @@ public class UserService {
     }
 
     public void addFriend(Integer firstId, Integer secondId) {
+        getUser(firstId);
+        getUser(secondId);
         if (firstId.equals(secondId)) {
             throw new NotFoundException("You cannot remove yourself");
         }
@@ -47,6 +49,8 @@ public class UserService {
     }
 
     public void removeFriend(Integer firstId, Integer secondId) {
+        getUser(firstId);
+        getUser(secondId);
         if (firstId.equals(secondId)) {
             throw new NotFoundException("You cannot remove yourself");
         }
@@ -55,6 +59,7 @@ public class UserService {
     }
 
     public List<User> getFriends(Integer id) {
+        getUser(id);
         return new ArrayList<>(friendStorage.getFriends(id));
     }
 

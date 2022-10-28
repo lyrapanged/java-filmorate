@@ -27,6 +27,16 @@ public class Film {
     @Positive
     @Max(5000)
     private int duration;
+
+    public Film(Integer id, String name, String description, LocalDate releaseDate, int duration, Mpa mpa) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.mpa = mpa;
+    }
+
     @NotNull
     private Mpa mpa;
     private Set<Genre> genres = new HashSet<>();

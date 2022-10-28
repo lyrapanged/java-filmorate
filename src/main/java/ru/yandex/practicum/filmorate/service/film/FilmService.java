@@ -6,9 +6,11 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.film.LikeStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
+import java.util.HashSet;
 import java.util.List;
 
 
@@ -19,15 +21,17 @@ public class FilmService {
     private final UserStorage userStorage;
     private final LikeStorage likeStorage;
     private final GenreService genreService;
+    private final GenreStorage genreStorage;
 
     @Autowired
     public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
                        @Qualifier("userDbStorage") UserStorage userStorage,
-                       LikeStorage likeStorage, GenreService genreService) {
+                       LikeStorage likeStorage, GenreService genreService, GenreStorage genreStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.likeStorage = likeStorage;
         this.genreService = genreService;
+        this.genreStorage = genreStorage;
     }
 
     public void addFilm(Film film) {
@@ -41,28 +45,34 @@ public class FilmService {
     }
 
     public Film getFilm(Integer id) {
-        return filmStorage.getFilm(id).orElseThrow(() -> new NotFoundException("Film id doesn't exist"));
+        Film film = filmStorage.getFilm(id).orElseThrow(() -> new NotFoundException("Film id doesn't exist"));
+        film.setGenres(new HashSet<>(genreStorage.getFilmGenres(id)));
+        return film;
     }
 
     public List<Film> getFilms() {
-        return filmStorage.getFilms();
+        List<Film> films = filmStorage.getFilms();
+        films.forEach(f -> f.setGenres(new HashSet<>(genreStorage.getFilmGenres(f.getId()))));
+        return films;
     }
 
     public void addLike(Integer filmId, Integer userId) {
-        filmStorage.getFilm(filmId).orElseThrow(() -> new NotFoundException("Film or film doesn't exist"));
-        userStorage.getUser(userId).orElseThrow(() -> new NotFoundException("User or film doesn't exist"));
+        getFilm(filmId);
+        getUser(userId);
         likeStorage.addLike(filmId, userId);
     }
 
     public void removeLike(Integer filmId, Integer userId) {
-        userStorage.getUser(userId).orElseThrow(() -> new NotFoundException("User or film doesn't exist"));
-        filmStorage.getFilm(filmId).orElseThrow(() -> new NotFoundException("Film or film doesn't exist"));
+        getUser(userId);
+        getFilm(filmId);
         likeStorage.removeLike(filmId, userId);
-
     }
 
     public List<Film> getMostPopularMovies(Integer count) {
         return likeStorage.getPopularFilms(count);
     }
 
+    private void getUser(Integer userId) {
+        userStorage.getUser(userId).orElseThrow(() -> new NotFoundException("User or film doesn't exist"));
+    }
 }

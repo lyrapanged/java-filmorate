@@ -26,7 +26,8 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getFilms() {
-        String sql = "SELECT * FROM FILMS";
+        String sql = "SELECT * FROM FILMS INNER JOIN " +
+                "(SELECT NAME AS MPA_NAME,ID_RATING AS ID_MPA FROM MPA_RATING)  AS MR  ON FILMS.ID_RATING = ID_MPA";
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
 
     }
@@ -74,7 +75,9 @@ public class FilmDbStorage implements FilmStorage {
         if (filmId == null) {
             throw new NotFoundException("Id doesn't exist");
         }
-        String sql = "SELECT * FROM films WHERE ID_FILM = ?";
+        String sql = "SELECT * FROM FILMS INNER JOIN " +
+                "(SELECT NAME AS MPA_NAME,ID_RATING AS ID_MPA FROM MPA_RATING)  AS MR  ON FILMS.ID_RATING = ID_MPA " +
+                "WHERE ID_FILM =?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs), filmId).stream().findFirst();
     }
 
@@ -84,24 +87,8 @@ public class FilmDbStorage implements FilmStorage {
         String login = rs.getString("description");
         LocalDate releaseDate = rs.getDate("release_Date").toLocalDate();
         Integer duration = rs.getInt("duration");
-        String sqlNameMpa = "SELECT * FROM MPA_RATING WHERE ID_RATING IN (" +
-                "SELECT ID_RATING FROM FILMS WHERE ID_FILM = ?)";
-        String nameMpa = jdbcTemplate.query(sqlNameMpa,
-                        (rsMpa, rowNum) -> rsMpa.getString("name"), idFilm).stream()
-                .findAny().orElseThrow(() -> new NotFoundException("Bad name"));
-        Mpa mpa = new Mpa(rs.getInt("id_rating"), nameMpa);
-        String sqlGenres = "SELECT * FROM GENRES WHERE ID_GENRE IN " +
-                "(SELECT ID_GENRE FROM FILM_GENRE WHERE FILM_GENRE.ID_FILM = ?)";
-        Set<Genre> genres = new HashSet<>(
-                jdbcTemplate.query(sqlGenres, (rsGenre, rowNum) -> makeGenre(rsGenre), idFilm));
-        return new Film(idFilm, email, login, releaseDate, duration, mpa, genres);
-
-    }
-
-    private Genre makeGenre(ResultSet rs) throws SQLException {
-        int id = rs.getInt("id_genre");
-        String name = rs.getString("name");
-        return new Genre(id, name);
+        Mpa mpa = new Mpa(rs.getInt("id_rating"), rs.getString("mpa_name"));
+        return new Film(idFilm, email, login, releaseDate, duration, mpa);
     }
 }
 

@@ -39,10 +39,10 @@ public class ErrorHandler {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler
-    public ResponseEntity<String> unhandledException(final Throwable e) {
-        log.error("Unhandled exception");
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+//    @ExceptionHandler
+//    public ResponseEntity<String> unhandledException(final Throwable e) {
+//        log.error("Unhandled exception");
+//        return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
 
 }
