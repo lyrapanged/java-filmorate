@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.yandex.practicum.filmorate.dao.userDao.FriendDao;
+import ru.yandex.practicum.filmorate.dao.userDao.UserDao;
 import ru.yandex.practicum.filmorate.model.user.User;
-import ru.yandex.practicum.filmorate.storage.user.FriendStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
+
+import ru.yandex.practicum.filmorate.dao.userDao.impl.UserDaoImpl;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,8 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class UserControllerTest {
 
 
-    private final UserDbStorage userStorage;
-    private final FriendStorage friendStorage;
+    private final UserDao userDao;
+    private final FriendDao friendDao;
 
 
     @Test
@@ -38,8 +40,8 @@ class UserControllerTest {
                 .name("asd")
                 .birthday(LocalDate.of(2020, 2, 22))
                 .build();
-        userStorage.addUser(user);
-        Assertions.assertThat(user).isEqualTo(userStorage.getUser(1).orElseThrow());
+        userDao.addUser(user);
+        Assertions.assertThat(user).isEqualTo(userDao.getUser(1).orElseThrow());
     }
 
     @Test
@@ -51,10 +53,10 @@ class UserControllerTest {
                 .name("asd")
                 .birthday(LocalDate.of(2020, 2, 22))
                 .build();
-        userStorage.addUser(user);
+        userDao.addUser(user);
         user.setName("j");
-        userStorage.updateUser(user);
-        assertThat("j").isEqualTo(userStorage.getUser(1).orElseThrow().getName());
+        userDao.updateUser(user);
+        assertThat("j").isEqualTo(userDao.getUser(1).orElseThrow().getName());
     }
 
     @Test
@@ -66,7 +68,7 @@ class UserControllerTest {
                 .name("asd")
                 .birthday(LocalDate.of(2020, 2, 22))
                 .build();
-        userStorage.addUser(user);
+        userDao.addUser(user);
         User second = User.builder()
                 .id(2)
                 .email("@dada")
@@ -74,8 +76,8 @@ class UserControllerTest {
                 .name("asd")
                 .birthday(LocalDate.of(2020, 2, 22))
                 .build();
-        userStorage.addUser(second);
-        assertEquals(2, userStorage.getAllUsers().size(), "Bad size");
+        userDao.addUser(second);
+        assertEquals(2, userDao.getAllUsers().size(), "Bad size");
     }
 
     @Test
@@ -87,7 +89,7 @@ class UserControllerTest {
                 .name("asd")
                 .birthday(LocalDate.of(2020, 2, 22))
                 .build();
-        userStorage.addUser(user);
+        userDao.addUser(user);
         User second = User.builder()
                 .id(2)
                 .email("@dada")
@@ -95,9 +97,9 @@ class UserControllerTest {
                 .name("asd")
                 .birthday(LocalDate.of(2020, 2, 22))
                 .build();
-        userStorage.addUser(second);
-        friendStorage.addFriend(user.getId(), second.getId());
-        List<User> friends = friendStorage.getFriends(1);
+        userDao.addUser(second);
+        friendDao.addFriend(user.getId(), second.getId());
+        List<User> friends = friendDao.getFriends(1);
         User testFriend = friends.stream().findFirst().orElseThrow();
         assertEquals(2, testFriend.getId());
     }
@@ -111,7 +113,7 @@ class UserControllerTest {
                 .name("asd")
                 .birthday(LocalDate.of(2020, 2, 22))
                 .build();
-        userStorage.addUser(user);
+        userDao.addUser(user);
         User second = User.builder()
                 .id(2)
                 .email("@dada")
@@ -119,13 +121,13 @@ class UserControllerTest {
                 .name("asd")
                 .birthday(LocalDate.of(2020, 2, 22))
                 .build();
-        userStorage.addUser(second);
-        friendStorage.addFriend(user.getId(), second.getId());
-        List<User> friends = friendStorage.getFriends(1);
+        userDao.addUser(second);
+        friendDao.addFriend(user.getId(), second.getId());
+        List<User> friends = friendDao.getFriends(1);
         User testFriend = friends.stream().findFirst().orElseThrow();
         assertEquals(2, testFriend.getId());
-        friendStorage.removeFriend(1, 2);
-        assertEquals(0, friendStorage.getFriends(1).size());
+        friendDao.removeFriend(1, 2);
+        assertEquals(0, friendDao.getFriends(1).size());
     }
 
     @Test
@@ -137,7 +139,7 @@ class UserControllerTest {
                 .name("asd")
                 .birthday(LocalDate.of(2020, 2, 22))
                 .build();
-        userStorage.addUser(user);
+        userDao.addUser(user);
         User second = User.builder()
                 .id(2)
                 .email("@dada")
@@ -152,14 +154,14 @@ class UserControllerTest {
                 .name("asd")
                 .birthday(LocalDate.of(2020, 2, 22))
                 .build();
-        userStorage.addUser(second);
-        userStorage.addUser(third);
-        friendStorage.addFriend(user.getId(), second.getId());
-        List<User> friends = friendStorage.getFriends(1);
+        userDao.addUser(second);
+        userDao.addUser(third);
+        friendDao.addFriend(user.getId(), second.getId());
+        List<User> friends = friendDao.getFriends(1);
         assertEquals(2, friends.stream().findFirst().orElseThrow().getId());
-        friendStorage.addFriend(user.getId(), third.getId());
-        friendStorage.addFriend(second.getId(), third.getId());
-        friendStorage.addFriend(second.getId(), user.getId());
-        assertEquals(3, friendStorage.commonFriends(1, 2).stream().findFirst().orElseThrow().getId(), "404");
+        friendDao.addFriend(user.getId(), third.getId());
+        friendDao.addFriend(second.getId(), third.getId());
+        friendDao.addFriend(second.getId(), user.getId());
+        assertEquals(3, friendDao.commonFriends(1, 2).stream().findFirst().orElseThrow().getId(), "404");
     }
 }

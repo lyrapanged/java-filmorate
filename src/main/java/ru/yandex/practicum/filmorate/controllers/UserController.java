@@ -15,7 +15,6 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class UserController {
-
     private final UserService userService;
 
     @PostMapping
@@ -45,7 +44,6 @@ public class UserController {
     @PutMapping(value = "{id}/friends/{friendId}")
     public void addFriends(@PathVariable Integer id, @PathVariable Integer friendId) {
         userService.addFriend(id, friendId);
-
     }
 
     @DeleteMapping(value = "/{id}/friends/{friendId}")

@@ -1,8 +1,9 @@
-package ru.yandex.practicum.filmorate.storage.film;
+package ru.yandex.practicum.filmorate.dao.filmDao.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dao.filmDao.LikeDao;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.film.Mpa;
 
@@ -13,19 +14,22 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class LikeStorage {
+public class LikeDaoImpl implements LikeDao {
     private final JdbcTemplate jdbcTemplate;
 
+    @Override
     public void addLike(Integer filmId, Integer userId) {
         String sql = "INSERT INTO film_likes (ID_FILM, ID_USER) VALUES (?, ?)";
         jdbcTemplate.update(sql, filmId, userId);
     }
 
+    @Override
     public void removeLike(Integer filmId, Integer userId) {
         String sql = "DELETE FROM film_likes WHERE ID_FILM = ? AND ID_USER = ?";
         jdbcTemplate.update(sql, filmId, userId);
     }
 
+    @Override
     public List<Film> getPopularFilms(Integer count) {
         String getPopularQuery = " SELECT * " +
                 "from (SELECT FILMS.ID_FILM, NAME, DESCRIPTION, RELEASE_DATE, DURATION, ID_RATING " +
@@ -36,6 +40,7 @@ public class LikeStorage {
         return jdbcTemplate.query(getPopularQuery, (rs, rowNum) -> makeFilm(rs), count);
     }
 
+    @Override
     public List<Integer> getLikes(Integer filmId) {
         String sql = "SELECT ID_USER FROM film_likes WHERE ID_FILM = ?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getInt("id_user"), filmId);

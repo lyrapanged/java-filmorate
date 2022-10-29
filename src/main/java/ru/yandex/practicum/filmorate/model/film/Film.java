@@ -26,9 +26,9 @@ public class Film {
     private LocalDate releaseDate;
     @Positive
     @Max(5000)
-    private int duration;
+    private Integer duration;
 
-    public Film(Integer id, String name, String description, LocalDate releaseDate, int duration, Mpa mpa) {
+    public Film(Integer id, String name, String description, LocalDate releaseDate, Integer duration, Mpa mpa) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -50,5 +50,4 @@ public class Film {
         values.put("id_rating", mpa.getId());
         return values;
     }
-
 }

@@ -3,12 +3,12 @@ package ru.yandex.practicum.filmorate.service.film;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.filmDao.FilmDao;
+import ru.yandex.practicum.filmorate.dao.filmDao.GenreDao;
+import ru.yandex.practicum.filmorate.dao.filmDao.LikeDao;
+import ru.yandex.practicum.filmorate.dao.userDao.UserDao;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.film.Film;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.film.GenreStorage;
-import ru.yandex.practicum.filmorate.storage.film.LikeStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.HashSet;
 import java.util.List;
@@ -16,63 +16,62 @@ import java.util.List;
 
 @Service
 public class FilmService {
-
-    private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
-    private final LikeStorage likeStorage;
+    private final FilmDao filmDao;
+    private final UserDao userDao;
+    private final LikeDao likeDao;
     private final GenreService genreService;
-    private final GenreStorage genreStorage;
+    private final GenreDao genreDao;
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
-                       @Qualifier("userDbStorage") UserStorage userStorage,
-                       LikeStorage likeStorage, GenreService genreService, GenreStorage genreStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
-        this.likeStorage = likeStorage;
+    public FilmService(@Qualifier("filmDaoImpl") FilmDao filmDao,
+                       @Qualifier("userDaoImpl") UserDao userDao,
+                       LikeDao likeDao, GenreService genreService, GenreDao genreDao) {
+        this.filmDao = filmDao;
+        this.userDao = userDao;
+        this.likeDao = likeDao;
         this.genreService = genreService;
-        this.genreStorage = genreStorage;
+        this.genreDao = genreDao;
     }
 
     public void addFilm(Film film) {
-        filmStorage.addFilm(film);
+        filmDao.addFilm(film);
         genreService.putGenres(film);
     }
 
     public void updateFilm(Film film) {
-        filmStorage.updateFilm(film);
+        filmDao.updateFilm(film);
         genreService.putGenres(film);
     }
 
     public Film getFilm(Integer id) {
-        Film film = filmStorage.getFilm(id).orElseThrow(() -> new NotFoundException("Film id doesn't exist"));
-        film.setGenres(new HashSet<>(genreStorage.getFilmGenres(id)));
+        Film film = filmDao.getFilm(id).orElseThrow(() -> new NotFoundException("Film id doesn't exist"));
+        film.setGenres(new HashSet<>(genreDao.getFilmGenres(id)));
         return film;
     }
 
     public List<Film> getFilms() {
-        List<Film> films = filmStorage.getFilms();
-        films.forEach(f -> f.setGenres(new HashSet<>(genreStorage.getFilmGenres(f.getId()))));
+        List<Film> films = filmDao.getFilms();
+        films.forEach(f -> f.setGenres(new HashSet<>(genreDao.getFilmGenres(f.getId()))));
         return films;
     }
 
     public void addLike(Integer filmId, Integer userId) {
         getFilm(filmId);
         getUser(userId);
-        likeStorage.addLike(filmId, userId);
+        likeDao.addLike(filmId, userId);
     }
 
     public void removeLike(Integer filmId, Integer userId) {
         getUser(userId);
         getFilm(filmId);
-        likeStorage.removeLike(filmId, userId);
+        likeDao.removeLike(filmId, userId);
     }
 
     public List<Film> getMostPopularMovies(Integer count) {
-        return likeStorage.getPopularFilms(count);
+        return likeDao.getPopularFilms(count);
     }
 
     private void getUser(Integer userId) {
-        userStorage.getUser(userId).orElseThrow(() -> new NotFoundException("User or film doesn't exist"));
+        userDao.getUser(userId).orElseThrow(() -> new NotFoundException("User or film doesn't exist"));
     }
 }

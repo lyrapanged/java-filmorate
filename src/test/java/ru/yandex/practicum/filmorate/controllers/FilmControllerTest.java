@@ -7,13 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.yandex.practicum.filmorate.dao.filmDao.FilmDao;
+import ru.yandex.practicum.filmorate.dao.filmDao.LikeDao;
+import ru.yandex.practicum.filmorate.dao.userDao.UserDao;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.film.Film;
 import ru.yandex.practicum.filmorate.model.film.Mpa;
 import ru.yandex.practicum.filmorate.model.user.User;
-import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storage.film.LikeStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -27,9 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class FilmControllerTest {
 
-    private final FilmDbStorage filmDbStorage;
-    private final LikeStorage likeStorage;
-    private final UserStorage userStorage;
+    private final FilmDao filmDao;
+    private final LikeDao likeDao;
+    private final UserDao userDao;
 
 
     @Test
@@ -43,9 +43,9 @@ class FilmControllerTest {
                 .genres(new HashSet<>())
                 .mpa(new Mpa(1, "G"))
                 .build();
-        filmDbStorage.addFilm(film);
-        Assertions.assertThat(film).isEqualTo(filmDbStorage.getFilm(1).orElseThrow());
-        assertEquals(1, filmDbStorage.getFilms().size());
+        filmDao.addFilm(film);
+        Assertions.assertThat(film).isEqualTo(filmDao.getFilm(1).orElseThrow());
+        assertEquals(1, filmDao.getFilms().size());
     }
 
     @Test
@@ -59,8 +59,8 @@ class FilmControllerTest {
                 .genres(new HashSet<>())
                 .mpa(new Mpa(1, "G"))
                 .build();
-        filmDbStorage.addFilm(film);
-        Assertions.assertThat(film).isEqualTo(filmDbStorage.getFilm(1).orElseThrow());
+        filmDao.addFilm(film);
+        Assertions.assertThat(film).isEqualTo(filmDao.getFilm(1).orElseThrow());
         Film second = Film.builder()
                 .id(1)
                 .name("Ten little niggers")
@@ -70,8 +70,8 @@ class FilmControllerTest {
                 .genres(new HashSet<>())
                 .mpa(new Mpa(1, "G"))
                 .build();
-        filmDbStorage.updateFilm(second);
-        assertThat("Ten little niggers").isEqualTo(filmDbStorage.getFilm(1).orElseThrow().getName());
+        filmDao.updateFilm(second);
+        assertThat("Ten little niggers").isEqualTo(filmDao.getFilm(1).orElseThrow().getName());
     }
 
     @Test
@@ -85,8 +85,8 @@ class FilmControllerTest {
                 .genres(new HashSet<>())
                 .mpa(new Mpa(1, "G"))
                 .build();
-        filmDbStorage.addFilm(film);
-        assertThat(film).isEqualTo(filmDbStorage.getFilm(1).orElseThrow());
+        filmDao.addFilm(film);
+        assertThat(film).isEqualTo(filmDao.getFilm(1).orElseThrow());
     }
 
     @Test
@@ -100,10 +100,10 @@ class FilmControllerTest {
                 .genres(new HashSet<>())
                 .mpa(new Mpa(1, "G"))
                 .build();
-        filmDbStorage.addFilm(film);
-        assertThat(film).isEqualTo(filmDbStorage.getFilm(1).orElseThrow());
-        Film testFilm = filmDbStorage.getFilm(1).orElseThrow(() -> new NotFoundException("s"));
-        assertThat(film).isEqualTo(filmDbStorage.getFilm(1).orElseThrow());
+        filmDao.addFilm(film);
+        assertThat(film).isEqualTo(filmDao.getFilm(1).orElseThrow());
+        Film testFilm = filmDao.getFilm(1).orElseThrow(() -> new NotFoundException("s"));
+        assertThat(film).isEqualTo(filmDao.getFilm(1).orElseThrow());
         Film second = Film.builder()
                 .id(1)
                 .name("Ten little niggers")
@@ -113,8 +113,8 @@ class FilmControllerTest {
                 .genres(new HashSet<>())
                 .mpa(new Mpa(1, "G"))
                 .build();
-        filmDbStorage.addFilm(second);
-        assertEquals(2, filmDbStorage.getFilms().size(), "Bad size");
+        filmDao.addFilm(second);
+        assertEquals(2, filmDao.getFilms().size(), "Bad size");
 
     }
 
@@ -130,10 +130,10 @@ class FilmControllerTest {
                 .genres(new HashSet<>())
                 .mpa(new Mpa(1, "G"))
                 .build();
-        filmDbStorage.addFilm(film);
-        assertThat(film).isEqualTo(filmDbStorage.getFilm(1).orElseThrow());
-        Film testFilm = filmDbStorage.getFilm(1).orElseThrow(() -> new NotFoundException("s"));
-        assertThat(film).isEqualTo(filmDbStorage.getFilm(1).orElseThrow());
+        filmDao.addFilm(film);
+        assertThat(film).isEqualTo(filmDao.getFilm(1).orElseThrow());
+        Film testFilm = filmDao.getFilm(1).orElseThrow(() -> new NotFoundException("s"));
+        assertThat(film).isEqualTo(filmDao.getFilm(1).orElseThrow());
         Film second = Film.builder()
                 .id(1)
                 .name("Ten little niggers")
@@ -143,8 +143,8 @@ class FilmControllerTest {
                 .genres(new HashSet<>())
                 .mpa(new Mpa(1, "G"))
                 .build();
-        filmDbStorage.addFilm(second);
-        assertEquals(2, filmDbStorage.getFilms().size(), "Bad size");
+        filmDao.addFilm(second);
+        assertEquals(2, filmDao.getFilms().size(), "Bad size");
         User user = User.builder()
                 .id(1)
                 .email("@dada")
@@ -152,9 +152,9 @@ class FilmControllerTest {
                 .name("asd")
                 .birthday(LocalDate.of(2020, 2, 22))
                 .build();
-        userStorage.addUser(user);
-        likeStorage.addLike(1, 1);
-        assertEquals(1, likeStorage.getPopularFilms(1).stream().findFirst().orElseThrow().getId());
+        userDao.addUser(user);
+        likeDao.addLike(1, 1);
+        assertEquals(1, likeDao.getPopularFilms(1).stream().findFirst().orElseThrow().getId());
     }
 
     @Test
@@ -168,10 +168,10 @@ class FilmControllerTest {
                 .genres(new HashSet<>())
                 .mpa(new Mpa(1, "G"))
                 .build();
-        filmDbStorage.addFilm(film);
-        assertThat(film).isEqualTo(filmDbStorage.getFilm(1).orElseThrow());
-        Film testFilm = filmDbStorage.getFilm(1).orElseThrow(() -> new NotFoundException("s"));
-        assertThat(film).isEqualTo(filmDbStorage.getFilm(1).orElseThrow());
+        filmDao.addFilm(film);
+        assertThat(film).isEqualTo(filmDao.getFilm(1).orElseThrow());
+        Film testFilm = filmDao.getFilm(1).orElseThrow(() -> new NotFoundException("s"));
+        assertThat(film).isEqualTo(filmDao.getFilm(1).orElseThrow());
         Film second = Film.builder()
                 .id(1)
                 .name("Ten little niggers")
@@ -181,8 +181,8 @@ class FilmControllerTest {
                 .genres(new HashSet<>())
                 .mpa(new Mpa(1, "G"))
                 .build();
-        filmDbStorage.addFilm(second);
-        assertEquals(2, filmDbStorage.getFilms().size(), "Bad size");
+        filmDao.addFilm(second);
+        assertEquals(2, filmDao.getFilms().size(), "Bad size");
         User user = User.builder()
                 .id(1)
                 .email("@dada")
@@ -204,17 +204,17 @@ class FilmControllerTest {
                 .name("asd")
                 .birthday(LocalDate.of(2020, 2, 22))
                 .build();
-        userStorage.addUser(user);
-        userStorage.addUser(secondUser);
-        userStorage.addUser(third);
-        likeStorage.addLike(1, 1);
-        assertEquals(1, likeStorage.getPopularFilms(1).stream().findFirst().orElseThrow().getId());
-        likeStorage.addLike(1, 2);
-        likeStorage.addLike(2, 3);
-        assertEquals(likeStorage.getPopularFilms(1).stream().findFirst().orElseThrow(), film);
-        likeStorage.removeLike(1, 1);
-        likeStorage.removeLike(1, 2);
-        assertEquals(likeStorage.getPopularFilms(1).stream().findFirst().orElseThrow(), second);
+        userDao.addUser(user);
+        userDao.addUser(secondUser);
+        userDao.addUser(third);
+        likeDao.addLike(1, 1);
+        assertEquals(1, likeDao.getPopularFilms(1).stream().findFirst().orElseThrow().getId());
+        likeDao.addLike(1, 2);
+        likeDao.addLike(2, 3);
+        assertEquals(likeDao.getPopularFilms(1).stream().findFirst().orElseThrow(), film);
+        likeDao.removeLike(1, 1);
+        likeDao.removeLike(1, 2);
+        assertEquals(likeDao.getPopularFilms(1).stream().findFirst().orElseThrow(), second);
     }
 
 }

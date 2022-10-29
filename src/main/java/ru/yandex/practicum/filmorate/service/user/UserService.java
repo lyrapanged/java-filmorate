@@ -3,40 +3,39 @@ package ru.yandex.practicum.filmorate.service.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.userDao.FriendDao;
+import ru.yandex.practicum.filmorate.dao.userDao.UserDao;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.user.User;
-import ru.yandex.practicum.filmorate.storage.user.FriendStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class UserService {
-
-    private final UserStorage userStorage;
-    private final FriendStorage friendStorage;
+    private final UserDao userDao;
+    private final FriendDao friendDao;
 
     @Autowired
-    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, FriendStorage friendStorage) {
-        this.userStorage = userStorage;
-        this.friendStorage = friendStorage;
+    public UserService(@Qualifier("userDaoImpl") UserDao userDao, FriendDao friendDao) {
+        this.userDao = userDao;
+        this.friendDao = friendDao;
     }
 
     public void addUser(User user) {
-        userStorage.addUser(user);
+        userDao.addUser(user);
     }
 
     public void updateUser(User user) {
-        userStorage.updateUser(user);
+        userDao.updateUser(user);
     }
 
     public List<User> getAllUsers() {
-        return userStorage.getAllUsers();
+        return userDao.getAllUsers();
     }
 
     public User getUser(Integer id) {
-        return userStorage.getUser(id).orElseThrow(() -> new NotFoundException("User id doesn't exist"));
+        return userDao.getUser(id).orElseThrow(() -> new NotFoundException("User id doesn't exist"));
     }
 
     public void addFriend(Integer firstId, Integer secondId) {
@@ -45,7 +44,7 @@ public class UserService {
         if (firstId.equals(secondId)) {
             throw new NotFoundException("You cannot remove yourself");
         }
-        friendStorage.addFriend(firstId, secondId);
+        friendDao.addFriend(firstId, secondId);
     }
 
     public void removeFriend(Integer firstId, Integer secondId) {
@@ -54,19 +53,19 @@ public class UserService {
         if (firstId.equals(secondId)) {
             throw new NotFoundException("You cannot remove yourself");
         }
-        friendStorage.removeFriend(firstId, secondId);
+        friendDao.removeFriend(firstId, secondId);
 
     }
 
     public List<User> getFriends(Integer id) {
         getUser(id);
-        return new ArrayList<>(friendStorage.getFriends(id));
+        return new ArrayList<>(friendDao.getFriends(id));
     }
 
     public List<User> commonFriends(Integer firstId, Integer secondId) {
         if (firstId.equals(secondId)) {
             throw new NotFoundException("You cannot view mutual friends with yourself");
         }
-        return friendStorage.commonFriends(firstId, secondId);
+        return friendDao.commonFriends(firstId, secondId);
     }
 }

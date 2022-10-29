@@ -15,7 +15,6 @@ import java.util.Collection;
 @RequestMapping("/mpa")
 @Slf4j
 public class MpaController {
-
     private final MpaService mpaService;
 
     @Autowired

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.user;
+package ru.yandex.practicum.filmorate.dao.userDao.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dao.userDao.UserDao;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.user.User;
@@ -16,13 +17,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-
 @Repository
-@Qualifier("userDbStorage")
+@Qualifier("userDaoImpl")
 @Slf4j
 @RequiredArgsConstructor
-public class UserDbStorage implements UserStorage {
-
+public class UserDaoImpl implements UserDao {
     private final JdbcTemplate jdbcTemplate;
 
     @Override

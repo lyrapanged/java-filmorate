@@ -16,9 +16,7 @@ import java.util.Collection;
 @Slf4j
 @RequiredArgsConstructor
 public class GenreController {
-
     private final GenreService genreService;
-
 
     @GetMapping
     public Collection<Genre> getGenres() {

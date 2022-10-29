@@ -1,10 +1,11 @@
-package ru.yandex.practicum.filmorate.storage.film;
+package ru.yandex.practicum.filmorate.dao.filmDao.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dao.filmDao.FilmDao;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.film.Film;
@@ -17,19 +18,17 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Repository("filmDbStorage")
+@Repository("filmDaoImpl")
 @Qualifier
 @RequiredArgsConstructor
-public class FilmDbStorage implements FilmStorage {
+public class FilmDaoImpl implements FilmDao {
     private final JdbcTemplate jdbcTemplate;
-
 
     @Override
     public List<Film> getFilms() {
         String sql = "SELECT * FROM FILMS INNER JOIN " +
                 "(SELECT NAME AS MPA_NAME,ID_RATING AS ID_MPA FROM MPA_RATING)  AS MR  ON FILMS.ID_RATING = ID_MPA";
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
-
     }
 
     @Override

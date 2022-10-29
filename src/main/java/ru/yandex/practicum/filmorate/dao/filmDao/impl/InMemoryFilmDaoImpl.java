@@ -1,6 +1,7 @@
-package ru.yandex.practicum.filmorate.storage.film;
+package ru.yandex.practicum.filmorate.dao.filmDao.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import ru.yandex.practicum.filmorate.dao.filmDao.FilmDao;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.film.Film;
 
@@ -8,8 +9,7 @@ import java.util.*;
 
 
 @Slf4j
-public class InMemoryFilmStorage implements FilmStorage {
-
+public class InMemoryFilmDaoImpl implements FilmDao {
     private final Map<Integer, Film> films = new HashMap<>();
     private Integer idFilm = 0;
 
