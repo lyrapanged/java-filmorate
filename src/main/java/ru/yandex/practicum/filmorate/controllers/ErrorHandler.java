@@ -14,7 +14,6 @@ import javax.validation.ConstraintViolationException;
 @RestControllerAdvice
 @Slf4j
 public class ErrorHandler {
-
     @ExceptionHandler
     public ResponseEntity<String> handleValidationException(final ValidationException e) {
         log.info("Invalid validation");
@@ -44,5 +43,4 @@ public class ErrorHandler {
         log.error("Unhandled exception");
         return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 }

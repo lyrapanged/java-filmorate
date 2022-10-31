@@ -1,16 +1,15 @@
-package ru.yandex.practicum.filmorate.storage.film;
+package ru.yandex.practicum.filmorate.dao.filmDao.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dao.filmDao.FilmDao;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.film.Film;
 
 import java.util.*;
 
-@Component
-@Slf4j
-public class InMemoryFilmStorage implements FilmStorage {
 
+@Slf4j
+public class InMemoryFilmDaoImpl implements FilmDao {
     private final Map<Integer, Film> films = new HashMap<>();
     private Integer idFilm = 0;
 
@@ -41,11 +40,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Optional<Film> getFilm(Integer id) {
-        /*return films.entrySet().stream()
-                .filter(p -> p.getKey().equals(id))
-                .findFirst()
-                .map(Map.Entry::getValue)
-                .orElseThrow(() -> new NotFoundException("id does not exist"));*/
         return Optional.ofNullable(films.get(id));
     }
 }

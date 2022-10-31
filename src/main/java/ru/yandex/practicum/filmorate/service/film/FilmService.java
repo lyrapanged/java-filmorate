@@ -1,61 +1,77 @@
 package ru.yandex.practicum.filmorate.service.film;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.filmDao.FilmDao;
+import ru.yandex.practicum.filmorate.dao.filmDao.GenreDao;
+import ru.yandex.practicum.filmorate.dao.filmDao.LikeDao;
+import ru.yandex.practicum.filmorate.dao.userDao.UserDao;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.user.UserService;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.model.film.Film;
 
-import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 
 @Service
-@RequiredArgsConstructor
 public class FilmService {
+    private final FilmDao filmDao;
+    private final UserDao userDao;
+    private final LikeDao likeDao;
+    private final GenreService genreService;
+    private final GenreDao genreDao;
 
-    private final FilmStorage filmStorage;
-    //private final UserStorage userStorage;
-    private final UserService userService;
+    @Autowired
+    public FilmService(@Qualifier("filmDaoImpl") FilmDao filmDao,
+                       @Qualifier("userDaoImpl") UserDao userDao,
+                       LikeDao likeDao, GenreService genreService, GenreDao genreDao) {
+        this.filmDao = filmDao;
+        this.userDao = userDao;
+        this.likeDao = likeDao;
+        this.genreService = genreService;
+        this.genreDao = genreDao;
+    }
 
     public void addFilm(Film film) {
-        filmStorage.addFilm(film);
+        filmDao.addFilm(film);
+        genreService.putGenres(film);
     }
 
     public void updateFilm(Film film) {
-        filmStorage.updateFilm(film);
+        filmDao.updateFilm(film);
+        genreService.putGenres(film);
     }
 
     public Film getFilm(Integer id) {
-        return filmStorage.getFilm(id).orElseThrow(() -> new NotFoundException("Film id doesn't exist"));
+        Film film = filmDao.getFilm(id).orElseThrow(() -> new NotFoundException("Film id doesn't exist"));
+        film.setGenres(new HashSet<>(genreDao.getFilmGenres(id)));
+        return film;
     }
 
     public List<Film> getFilms() {
-        return filmStorage.getFilms();
+        List<Film> films = filmDao.getFilms();
+        films.forEach(f -> f.setGenres(new HashSet<>(genreDao.getFilmGenres(f.getId()))));
+        return films;
     }
 
-    public void addLike(Integer idFilm, Integer idUser) {
-        Film film = getFilm(idFilm);
-        User user = userService.getUser(idUser);
-        film.setFilmLikes(user.getId());
-        film.setLikesCounter(film.getFilmLikes().size());
+    public void addLike(Integer filmId, Integer userId) {
+        getFilm(filmId);
+        getUser(userId);
+        likeDao.addLike(filmId, userId);
     }
 
-    public void removeLike(Integer idFilm, Integer idUser) {
-        Film film = getFilm(idFilm);
-        User user = userService.getUser(idUser);
-        film.removeLike(user.getId());
-        film.setLikesCounter(film.getFilmLikes().size());
+    public void removeLike(Integer filmId, Integer userId) {
+        getUser(userId);
+        getFilm(filmId);
+        likeDao.removeLike(filmId, userId);
     }
 
-    public Set<Film> topFilms(Integer count) {
-        return filmStorage.getFilms().stream()
-                .sorted(Comparator.comparing(Film::getLikesCounter)
-                        .reversed())
-                .limit(count).collect(Collectors.toSet());
+    public List<Film> getMostPopularMovies(Integer count) {
+        return likeDao.getPopularFilms(count);
+    }
+
+    private void getUser(Integer userId) {
+        userDao.getUser(userId).orElseThrow(() -> new NotFoundException("User or film doesn't exist"));
     }
 }
